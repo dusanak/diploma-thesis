@@ -7,6 +7,11 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
+<p>
+    <input type="number" @bind="number"/>
+    <button @onclick="UpdateForecasts">Refresh</button>    
+</p>
+
 @if (forecasts == null)
 {
     <p>
@@ -40,10 +45,23 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
+    private int number = 3;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        await UpdateForecasts();
+    }
+
+    protected async Task UpdateForecasts()
+    {
+        forecasts = await GetForecastsFromBackend(number) ?? await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+    }
+
+    protected async Task<WeatherForecast[]?> GetForecastsFromBackend(int number)
+    {
+        var response = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"https://localhost:7290/WeatherForecast/GetForecasts/{number}");
+
+        return response?.ToArray();
     }
 
     public class WeatherForecast

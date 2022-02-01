@@ -18,15 +18,22 @@ public class WeatherForecastController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("GetWeatherForecast", Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    [HttpGet("GetForecasts/{number:int}", Name = "GetWeather")]
+    public async Task<ActionResult> GetForecasts([FromRoute] int number = 10)
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        if (number < 1)
+        {
+            return BadRequest();
+        }
+
+        var result = Enumerable.Range(1, number).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        
+        return Ok(result);
     }
 }
