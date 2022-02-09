@@ -11,6 +11,11 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
+<p>
+    <input type="number" @bind="number"/>
+    <button @onclick="UpdateForecasts">Refresh</button>    
+</p>
+
 @if (forecasts == null)
 {
     <p><em>Loading...</em></p>
@@ -42,16 +47,39 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
+    private int number = 3;
 
     protected override async Task OnInitializedAsync()
     {
+        await UpdateForecasts();
+    }
+    
+    protected async Task UpdateForecasts()
+    {
+        var result = await GetForecastsFromBackend(number);
+
+        if (result is not null)
+        {
+            if (result.Length > 0)
+            {
+                forecasts = result;
+            }
+        }
+    }
+    
+    protected async Task<WeatherForecast[]?> GetForecastsFromBackend(int number)
+    {
         try
         {
-            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+            var response = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"WeatherForecast/GetForecasts/{number}");
+            
+            
+            return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
+            return null;
         }
     }
 }
