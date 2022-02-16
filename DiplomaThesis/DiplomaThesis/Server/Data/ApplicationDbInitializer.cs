@@ -5,17 +5,17 @@ namespace DiplomaThesis.Server.Data;
 
 public class ApplicationDbInitializer
 {
-    public static void SeedUsers(UserManager<IdentityUser> userManager)
+    public static void SeedUsers(UserManager<ApplicationUser> userManager)
     {
         if (userManager.FindByEmailAsync("admin@admin.cz").Result==null)
         {
-            IdentityUser user = new IdentityUser
+            ApplicationUser user = new ApplicationUser
             {
                 UserName = "admin@admin.cz",
                 Email = "admin@admin.cz"
             };
 
-            IdentityResult result = userManager.CreateAsync(user, "admin").Result;
+            IdentityResult result = userManager.CreateAsync(user, "admin1234").Result;
 
             if (result.Succeeded)
             {

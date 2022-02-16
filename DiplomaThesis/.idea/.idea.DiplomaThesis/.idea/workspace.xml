@@ -7,13 +7,9 @@
     <projectFile profileName="IIS Express">DiplomaThesis/Client/DiplomaThesis.Client.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc99c248-4353-4744-80aa-5ee8eecc9d47" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Controllers/AdministrationController.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Data/ApplicationDbInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a/storage_v2/_src_/database/master.YiqNvw/schema/dbo.sYMBAA.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a/storage_v2/_src_/database/master.YiqNvw/schema/dbo.sYMBAA.meta" afterDir="false" />
+    <list default="true" id="cc99c248-4353-4744-80aa-5ee8eecc9d47" name="Changes" comment="Added database migrations to initialize user roles. Added empty AdministrationController.">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DiplomaThesis/Server/Data/ApplicationDbContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Data/ApplicationDbContext.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DiplomaThesis/Server/Data/ApplicationDbInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Data/ApplicationDbInitializer.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DiplomaThesis/Server/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Program.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -156,7 +152,7 @@
       <workItem from="1644334066124" duration="7116000" />
       <workItem from="1644344009084" duration="4385000" />
       <workItem from="1644947529942" duration="6570000" />
-      <workItem from="1645006826182" duration="1659000" />
+      <workItem from="1645006826182" duration="5112000" />
     </task>
     <task id="LOCAL-00001" summary="Used Blazor template in Visual Studio for the project.">
       <created>1644338619985</created>
@@ -165,7 +161,14 @@
       <option name="project" value="LOCAL" />
       <updated>1644338619985</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Added database migrations to initialize user roles. Added empty AdministrationController.">
+      <created>1645011746042</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1645011746042</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -235,6 +238,7 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="Used Blazor template in Visual Studio for the project." />
-    <option name="LAST_COMMIT_MESSAGE" value="Used Blazor template in Visual Studio for the project." />
+    <MESSAGE value="Added database migrations to initialize user roles. Added empty AdministrationController." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added database migrations to initialize user roles. Added empty AdministrationController." />
   </component>
 </project>
