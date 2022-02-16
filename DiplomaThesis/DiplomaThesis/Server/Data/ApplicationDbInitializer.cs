@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DiplomaThesis.Server.Data;
 
-public class ApplicationDbInitializer
+public static class ApplicationDbInitializer
 {
     public static void SeedUsers(UserManager<ApplicationUser> userManager)
     {
@@ -19,7 +19,7 @@ public class ApplicationDbInitializer
 
             if (result.Succeeded)
             {
-                userManager.AddToRoleAsync(user, "Admin").Wait();
+                userManager.AddToRolesAsync(user, new[] {"Admin", "Architect"}).Wait();
             }
         }
     }

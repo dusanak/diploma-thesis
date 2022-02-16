@@ -21,7 +21,7 @@ namespace DiplomaThesis.Server.Data
             base.OnModelCreating(builder);
 
             builder.Entity<IdentityRole>().HasData(new IdentityRole { Name = "Admin", NormalizedName = "Admin".ToUpper() });
-            builder.Entity<IdentityRole>().HasData(new IdentityRole { Name = "Process Architect", NormalizedName = "Process_Architect".ToUpper() });
+            builder.Entity<IdentityRole>().HasData(new IdentityRole { Name = "Architect", NormalizedName = "Architect".ToUpper() });
         }
     }
 }

@@ -11,12 +11,12 @@ namespace DiplomaThesis.Server.Data.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "38b67b40-209d-4243-970a-32de97142cf5", "1bac38ef-b140-41c7-9a37-361d61bad862", "Process Architect", "PROCESS_ARCHITECT" });
+                values: new object[] { "0ec7c133-c8f9-4887-b7a8-05a32466a584", "e7189548-e780-49bb-9919-0a46280e014c", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "9e9c6ff9-cc34-4cd8-b36c-c34d4d0b691f", "1db60e06-c4bd-42f4-b6c0-3a7c763f4d0e", "Admin", "ADMIN" });
+                values: new object[] { "3159c51b-0c11-4f57-8547-9bc235283ef4", "614a6174-b683-4122-a4a7-2bec6cc73143", "Architect", "ARCHITECT" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -24,12 +24,12 @@ namespace DiplomaThesis.Server.Data.Migrations
             migrationBuilder.DeleteData(
                 table: "AspNetRoles",
                 keyColumn: "Id",
-                keyValue: "38b67b40-209d-4243-970a-32de97142cf5");
+                keyValue: "0ec7c133-c8f9-4887-b7a8-05a32466a584");
 
             migrationBuilder.DeleteData(
                 table: "AspNetRoles",
                 keyColumn: "Id",
-                keyValue: "9e9c6ff9-cc34-4cd8-b36c-c34d4d0b691f");
+                keyValue: "3159c51b-0c11-4f57-8547-9bc235283ef4");
         }
     }
 }

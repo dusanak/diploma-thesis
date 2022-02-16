@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiplomaThesis.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220216113903_RolesInit")]
+    [Migration("20220216190612_RolesInit")]
     partial class RolesInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -259,17 +259,17 @@ namespace DiplomaThesis.Server.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "9e9c6ff9-cc34-4cd8-b36c-c34d4d0b691f",
-                            ConcurrencyStamp = "1db60e06-c4bd-42f4-b6c0-3a7c763f4d0e",
+                            Id = "0ec7c133-c8f9-4887-b7a8-05a32466a584",
+                            ConcurrencyStamp = "e7189548-e780-49bb-9919-0a46280e014c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "38b67b40-209d-4243-970a-32de97142cf5",
-                            ConcurrencyStamp = "1bac38ef-b140-41c7-9a37-361d61bad862",
-                            Name = "Process Architect",
-                            NormalizedName = "PROCESS_ARCHITECT"
+                            Id = "3159c51b-0c11-4f57-8547-9bc235283ef4",
+                            ConcurrencyStamp = "614a6174-b683-4122-a4a7-2bec6cc73143",
+                            Name = "Architect",
+                            NormalizedName = "ARCHITECT"
                         });
                 });
 
