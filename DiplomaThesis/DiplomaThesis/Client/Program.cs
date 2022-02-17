@@ -13,6 +13,7 @@ builder.Services.AddHttpClient("DiplomaThesis.ServerAPI", client => client.BaseA
 // Supply HttpClient instances that include access tokens when making requests to the server project
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("DiplomaThesis.ServerAPI"));
 
-builder.Services.AddApiAuthorization();
+builder.Services.AddApiAuthorization()
+    .AddAccountClaimsPrincipalFactory<UserWithRolesFactory>();
 
 await builder.Build().RunAsync();
