@@ -8,13 +8,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cc99c248-4353-4744-80aa-5ee8eecc9d47" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Client/UserWithRolesFactory.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a/storage_v2/_src_/database/master.YiqNvw/schema/dbo.sYMBAA.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a/storage_v2/_src_/database/master.YiqNvw/schema/dbo.sYMBAA.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a/storage_v2/_src_/database/master.YiqNvw/schema/dbo.sYMBAA.zip" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/dataSources/22234052-4b75-4f03-9084-d4ebed17bf4a/storage_v2/_src_/database/master.YiqNvw/schema/dbo.sYMBAA.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Client/Pages/Administration.razor" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Shared/Commands/AddRoleCommand.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Shared/Commands/DeleteUserCommand.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Shared/Commands/RemoveRoleCommand.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Shared/Models/Role.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DiplomaThesis/Shared/Models/User.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.DiplomaThesis/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DiplomaThesis/Client/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Client/Program.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DiplomaThesis/Client/Shared/LoginDisplay.razor" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Client/Shared/LoginDisplay.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DiplomaThesis/Client/Shared/NavMenu.razor" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Client/Shared/NavMenu.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DiplomaThesis/Server/Controllers/AdministrationController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Controllers/AdministrationController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DiplomaThesis/Server/DiplomaThesis.Server.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Server/DiplomaThesis.Server.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DiplomaThesis/Server/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DiplomaThesis/Server/Program.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -29,6 +33,26 @@
       <filtered-out-file-type name="TAG" />
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/d853fcd93db233adcf4e1dceed779be62426c7d394f7617fab7c0b094651180/ModelCustomizer.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e0bea4e5f03899efe75dc4dcf582f230702687c5ac6269866345ce4aae5d8a36/ServiceProviderServiceExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/37a954845b52703c5cce1aacf8fa1292378878e82bf68c4c4b5effc447316e9/IdentityUser.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/94d6ef92b8779f6c4edef872bc091cc1af82540886c65bd48586796daf2d11e/IWebAssemblyHostEnvironment.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/e38745c94d65cb54dad5c55660612749c0690da385b9c148982feadef54/OptionsServiceCollectionExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/201163a2476615e8e92ea1f40cf5c4f545e20ffc550117de25937deb4102086/MvcServiceCollectionExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/7733bdb26b2be012c4266979a95d3728e74790201f91a02df4529ee6c2f37/ControllerBase.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/23b6e0dffb3b8b3c73289b937c50394391d86c336a9638e7f4d2582173ee/IUserConfirmation.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/91a84fe4b35624290abf32df61ac6c77c502a5bbb0616172bdce8fee8fdc2a/UserManager.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/58f01ef94b1274f3aa342db815cc6395db8b3d35dbf69cd52bb2c3efa5cb98/NavigationManager.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/b13fbe6c3faba1c4d8a81ba9cc1133fdc8e5316684e367996217ecb048da1bfc/SignInOptions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/9156f7f7d7fe31ecb86103c74e89e22a5242a153d4ccf14e354685cb3fb7b5/Task.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/17b39f667b9685e352c65cf82afbed3305fac133540633cd79ef475fd574e3/ApiAuthorizationDbContext.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/56c665453e61b7a241e4db6c184a5c6e713678f06c873acdeffaff638f9486/CallSiteValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/fe2f12f3e68e67de84733fecd21594c6ce7cce62332ffc3ab5c28d4deb98ea4c/DbContextServices.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/97366fb8b8c6d11b1906babc1c6efdf5ff2d9f5cb45ef5b8c49fd859b1ebd/First.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/46f3e4c1aadd9cc27d8553917233ea9b2a19f5bbc7e8116369aad9d31cd917/ModelSource.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/608710c970c749fbf3b2770da238f7a1a2e9b7a2cf9d69ab012b02caefef833/LayoutComponentBase.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -47,7 +71,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../../old-diploma-thesis/DiplomaThesis/DiplomaThesis.sln" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.github.ui.GithubSettingsConfigurable" />
+    <property name="settings.editor.selected.configurable" value="RiderNuGetOptionsPageId" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RunManager" selected=".NET Launch Settings Profile.DiplomaThesis.Server">

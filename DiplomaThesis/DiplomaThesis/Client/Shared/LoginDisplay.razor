@@ -1,24 +1,27 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims
 
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 
 <AuthorizeView>
     <Authorized>
-        <a href="authentication/profile">User: @context.User.Identity?.Name!</a>
+        <a href="authentication/profile">@context.User.Identity?.Name</a>
+        @{
+            var identity = (ClaimsIdentity)context.User.Identity!;
+            var roleClaims = identity.FindAll(identity.RoleClaimType).ToArray();
+            @foreach(var role in roleClaims) 
+            {
+                <text>&nbsp;@role.Value</text>
+            }
+        }
         <button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
     </Authorized>
     <NotAuthorized>
         <a href="authentication/register">Register</a>
         <a href="authentication/login">Log in</a>
     </NotAuthorized>
-</AuthorizeView>
-
-<AuthorizeView Roles="Admin, Architect">
-    <Authorized>
-        <p>Admin/Process Architect</p>
-    </Authorized>
 </AuthorizeView>
 
 @code{
