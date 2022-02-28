@@ -61,14 +61,16 @@ namespace DiplomaThesis.Server.Controllers
         public async Task<ActionResult> RemoveRole(
             [FromBody] RemoveRoleCommand value)
         {
-            if (!User.IsInRole(value.RoleName)) return Ok();
+            if (value.RoleName == "Admin") return BadRequest();
 
-            var user = await _userManager.FindByNameAsync(User.Identity!.Name);
+            var user = await _userManager.FindByNameAsync(value.UserName);
             if (user == null) return BadRequest();
 
+            var check = await _userManager.IsInRoleAsync(user, value.RoleName);
+            if (!check) return Ok();
+            
             var result = await _userManager.RemoveFromRoleAsync(user, value.RoleName);
-            if (!result.Succeeded)
-                return BadRequest();
+            if (!result.Succeeded) return BadRequest();
 
             return Ok();
         }

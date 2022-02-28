@@ -2,6 +2,7 @@
 @using DiplomaThesis.Shared.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using DiplomaThesis.Shared.Commands
 @attribute [Authorize(Roles = "Admin")]
 @inject HttpClient Http
 
@@ -18,6 +19,7 @@ else
             <tr>
                 <th>Id</th>
                 <th>Name</th>
+                <th>Roles</th>
             </tr>
         </thead>
         <tbody>
@@ -26,6 +28,24 @@ else
                 <tr>
                     <td>@user.Id</td>
                     <td>@user.Name</td>
+                    <td>
+                        <table class="table">
+                            @foreach (var role in user.Roles)
+                            {
+                                <tr>
+                                    <td>
+                                        @role.Name
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="btn btn-outline-dark oi oi-trash"
+                                            @onclick="() => RemoveRole(user.Name, role.Name)">
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </table>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -64,6 +84,22 @@ else
         {
             exception.Redirect();
             return null;
+        }
+    }
+
+    private async Task RemoveRole(String userName, String roleName)
+    {
+        try
+        {
+            await Http.PutAsJsonAsync(
+                $"Administration/RemoveRole", 
+                new RemoveRoleCommand { UserName = userName, RoleName = roleName }
+                );
+            await UpdateUsers();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
         }
     }
 }
