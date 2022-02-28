@@ -45,14 +45,17 @@ namespace DiplomaThesis.Server.Controllers
         public async Task<ActionResult> AddRole(
             [FromBody] AddRoleCommand value)
         {
-            if (User.IsInRole(value.RoleName)) return Ok();
-
-            var user = await _userManager.FindByNameAsync(User.Identity!.Name);
+            var checkRoleExists = await _roleManager.RoleExistsAsync(value.RoleName);
+            if (!checkRoleExists) return BadRequest();
+            
+            var user = await _userManager.FindByNameAsync(value.UserName);
             if (user == null) return BadRequest();
 
+            var checkUserHasRole = await _userManager.IsInRoleAsync(user, value.RoleName);
+            if (checkUserHasRole) return Ok();
+
             var result = await _userManager.AddToRoleAsync(user, value.RoleName);
-            if (!result.Succeeded)
-                return BadRequest();
+            if (!result.Succeeded) return BadRequest();
 
             return Ok();
         }
@@ -66,8 +69,8 @@ namespace DiplomaThesis.Server.Controllers
             var user = await _userManager.FindByNameAsync(value.UserName);
             if (user == null) return BadRequest();
 
-            var check = await _userManager.IsInRoleAsync(user, value.RoleName);
-            if (!check) return Ok();
+            var checkUserHasRole = await _userManager.IsInRoleAsync(user, value.RoleName);
+            if (!checkUserHasRole) return Ok();
             
             var result = await _userManager.RemoveFromRoleAsync(user, value.RoleName);
             if (!result.Succeeded) return BadRequest();

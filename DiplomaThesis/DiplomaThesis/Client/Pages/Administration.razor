@@ -32,18 +32,24 @@ else
                         <table class="table">
                             @foreach (var role in user.Roles)
                             {
-                                <tr>
-                                    <td>
-                                        @role.Name
-                                    </td>
-                                    <td>
-                                        <button
-                                            class="btn btn-outline-dark oi oi-trash"
-                                            @onclick="() => RemoveRole(user.Name, role.Name)">
-                                        </button>
-                                    </td>
-                                </tr>
+                                if (!role.Name.Equals("Admin"))
+                                {
+                                    <tr>
+                                        <td>
+                                            @role.Name
+                                        </td>
+                                        <td>
+                                            <button
+                                                class="btn btn-outline-dark oi oi-trash"
+                                                @onclick="() => RemoveRole(user.Name, role.Name)">
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
                             }
+                            <tr>
+                                
+                            </tr>
                         </table>
                     </td>
                 </tr>

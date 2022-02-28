@@ -107,7 +107,7 @@ using (var scope = app.Services.CreateScope())
 
     var manager = services.GetService<UserManager<ApplicationUser>>();
     
-    ApplicationDbInitializer.SeedUsers(manager);
+    ApplicationDbInitializer.SeedUsers(manager!);
 }
 
 app.Run();
