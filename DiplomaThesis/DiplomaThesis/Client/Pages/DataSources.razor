@@ -1,5 +1,10 @@
 @page "/data-sources"
-<h3>DataSources</h3>
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin, Architect")]
+
+<PageTitle>Data Sources</PageTitle>
+
+<h1>Data Sources</h1>
 
 @code {
     

@@ -1,5 +1,10 @@
 @page "/metrics"
-<h3>Metrics</h3>
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin, Architect")]
+
+<PageTitle>Metrics</PageTitle>
+
+<h1>Metrics</h1>
 
 @code {
     
