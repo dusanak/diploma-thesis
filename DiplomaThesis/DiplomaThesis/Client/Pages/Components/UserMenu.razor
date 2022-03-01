@@ -1,67 +1,51 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">DiplomaThesis</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
+@using DiplomaThesis.Shared.Models
+@* <div class="top-row ps-3 navbar navbar-dark"> *@
+@*     <div class="container-fluid"> *@
+@*         <a class="navbar-brand" href="">DiplomaThesis</a> *@
+@*         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleUserMenu"> *@
+@*             <span class="navbar-toggler-icon"></span> *@
+@*         </button> *@
+@*     </div> *@
+@* </div> *@
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        
-        @* <div class="nav-item px-3"> *@
-        @*     <NavLink class="nav-link" href="counter"> *@
-        @*         <span class="oi oi-plus" aria-hidden="true"></span> Counter *@
-        @*     </NavLink> *@
-        @* </div> *@
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dashboards">
-                <span class="oi oi-browser" aria-hidden="true"></span> Dashboards
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="metrics">
-                <span class="oi oi-bar-chart" aria-hidden="true"></span> Metrics
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="data">
-                <span class="oi oi-file" aria-hidden="true"></span> Data
-            </NavLink>
-        </div>
-        
-        @* <div class="nav-item px-3"> *@
-        @*     <NavLink class="nav-link" href="fetchdata"> *@
-        @*         <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data *@
-        @*     </NavLink> *@
-        @* </div> *@
-        
-        <AuthorizeView Roles="Admin">
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="administration">
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> Administration
-                </NavLink>
-            </div>
-        </AuthorizeView>
-    </nav>
-</div>
+@if (_showUserMenu)
+{
+    <div class="flex-column">
+        <span>@User?.Id</span>
+        <span>@User?.Name</span>
+        <table class="table">
+            @if (User?.Roles != null)
+            {
+                foreach (var role in User?.Roles)
+                {
+                    <tr>
+                        <td>
+                            @role.Name
+                        </td>
+                    </tr>
+                }
+            }
+        </table>
+        <button
+            class="btn btn-outline-dark"
+            @onclick="HideUserMenu">
+            Hide
+        </button>
+    </div>        
+}
 
 @code {
-    private bool collapseUserMenu = true;
+    public User? User { get; set; }
+    
+    private bool _showUserMenu = false;
 
-    private string? NavMenuCssClass => collapseUserMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    public void ShowUserMenu()
     {
-        collapseUserMenu = !collapseUserMenu;
+        _showUserMenu = true;
+    }
+    
+    public void HideUserMenu()
+    {
+        _showUserMenu = false;
     }
 }

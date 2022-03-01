@@ -14,36 +14,28 @@
                 <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
         </div>
+
+        <AuthorizeView>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="dashboards">
+                    <span class="oi oi-browser" aria-hidden="true"></span> Dashboards
+                </NavLink>
+            </div>
+        </AuthorizeView>
         
-        @* <div class="nav-item px-3"> *@
-        @*     <NavLink class="nav-link" href="counter"> *@
-        @*         <span class="oi oi-plus" aria-hidden="true"></span> Counter *@
-        @*     </NavLink> *@
-        @* </div> *@
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dashboards">
-                <span class="oi oi-browser" aria-hidden="true"></span> Dashboards
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="metrics">
-                <span class="oi oi-bar-chart" aria-hidden="true"></span> Metrics
-            </NavLink>
-        </div>
-        
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="data">
-                <span class="oi oi-file" aria-hidden="true"></span> Data
-            </NavLink>
-        </div>
-        
-        @* <div class="nav-item px-3"> *@
-        @*     <NavLink class="nav-link" href="fetchdata"> *@
-        @*         <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data *@
-        @*     </NavLink> *@
-        @* </div> *@
+        <AuthorizeView Roles="Architect, Admin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="metrics">
+                    <span class="oi oi-bar-chart" aria-hidden="true"></span> Metrics
+                </NavLink>
+            </div>
+            
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="data-sources">
+                    <span class="oi oi-file" aria-hidden="true"></span> Data
+                </NavLink>
+            </div>
+        </AuthorizeView>
         
         <AuthorizeView Roles="Admin">
             <div class="nav-item px-3">
@@ -56,12 +48,12 @@
 </div>
 
 @code {
-    private bool collapseNavMenu = true;
+    private bool _collapseNavMenu = true;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        _collapseNavMenu = !_collapseNavMenu;
     }
 }
