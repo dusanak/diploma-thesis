@@ -56,7 +56,7 @@ else
                 <td>
                     <button
                         class="btn btn-outline-dark"
-                        @onclick="() => SelectUser(user)">
+                        @onclick="() => _userMenu.ShowUser(user)">
                         Select
                     </button>
                 </td>
@@ -121,11 +121,5 @@ else
         {
             exception.Redirect();
         }
-    }
-
-    private void SelectUser(User user)
-    {
-        _userMenu.User = user;
-        _userMenu.ShowUserMenu();
     }
 }

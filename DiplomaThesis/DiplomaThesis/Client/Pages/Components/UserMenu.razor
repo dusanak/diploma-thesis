@@ -1,4 +1,5 @@
 @using DiplomaThesis.Shared.Models
+@using System.Xml.Schema
 @* <div class="top-row ps-3 navbar navbar-dark"> *@
 @*     <div class="container-fluid"> *@
 @*         <a class="navbar-brand" href="">DiplomaThesis</a> *@
@@ -8,44 +9,44 @@
 @*     </div> *@
 @* </div> *@
 
-@if (_showUserMenu)
-{
-    <div class="flex-column">
-        <span>@User?.Id</span>
-        <span>@User?.Name</span>
-        <table class="table">
-            @if (User?.Roles != null)
+
+<div class="flex-column" style="display: @(ShowUserMenu ? "block" : "none")">
+    <span>@User?.Id</span>
+    <span>@User?.Name</span>
+    <table class="table">
+        @if (User?.Roles != null)
+        {
+            foreach (var role in User?.Roles)
             {
-                foreach (var role in User?.Roles)
-                {
-                    <tr>
-                        <td>
-                            @role.Name
-                        </td>
-                    </tr>
-                }
+                <tr>
+                    <td>
+                        @role.Name
+                    </td>
+                </tr>
             }
-        </table>
-        <button
-            class="btn btn-outline-dark"
-            @onclick="HideUserMenu">
-            Hide
-        </button>
-    </div>        
-}
+        }
+    </table>
+    <button
+        class="btn btn-outline-dark"
+        @onclick="ToggleUserMenu">
+        Hide
+    </button>
+</div>
 
 @code {
-    public User? User { get; set; }
+    private User? User { get; set; }
     
-    private bool _showUserMenu = false;
+    public bool ShowUserMenu { get; set; }
 
-    public void ShowUserMenu()
+    public void ToggleUserMenu()
     {
-        _showUserMenu = true;
+        ShowUserMenu = !ShowUserMenu;
     }
-    
-    public void HideUserMenu()
+
+    public void ShowUser(User user)
     {
-        _showUserMenu = false;
+        User = user;
+        ShowUserMenu = true;
+        StateHasChanged();
     }
 }
