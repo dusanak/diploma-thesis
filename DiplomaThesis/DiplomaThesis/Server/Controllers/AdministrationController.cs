@@ -11,7 +11,7 @@ namespace DiplomaThesis.Server.Controllers
 {
     [Authorize(Roles = "Admin")]
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     public class AdministrationController : ControllerBase
     {
         private UserManager<ApplicationUser> _userManager;
@@ -41,7 +41,15 @@ namespace DiplomaThesis.Server.Controllers
             return Ok(result.AsEnumerable());
         }
         
-        [HttpPut("AddRole")]
+        [HttpGet]
+        public ActionResult ListRoles()
+        {
+            var result = _roleManager.Roles;
+            
+            return Ok(result.AsEnumerable());
+        }
+        
+        [HttpPut]
         public async Task<ActionResult> AddRole(
             [FromBody] AddRoleCommand value)
         {
@@ -60,7 +68,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok();
         }
         
-        [HttpPut("RemoveRole")]
+        [HttpPut]
         public async Task<ActionResult> RemoveRole(
             [FromBody] RemoveRoleCommand value)
         {

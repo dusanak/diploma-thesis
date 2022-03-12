@@ -34,25 +34,12 @@ else
                     <td>@user.Id</td>
                     <td>@user.Name</td>
                     <td>
-                        <table class="table">
+                        <div class="flex-row">
                             @foreach (var role in user.Roles)
                             {
-                                <tr>
-                                    <td>
-                                        @role.Name
-                                    </td>
-                                    <td>
-                                        @if (!role.Name.Equals("Admin"))
-                                        {
-                                            <button
-                                                class="btn btn-outline-dark oi oi-trash"
-                                                @onclick="() => RemoveRole(user.Name, role.Name)">
-                                            </button>
-                                        }
-                                    </td>
-                                </tr>
+                                @role.Name
                             }
-                        </table>
+                        </div>
                     </td>
                     <td>
                         <button
@@ -71,7 +58,7 @@ else
 }
 
 @code {
-    private UserMenu _userMenu;
+    private UserMenu _userMenu = null!;
     
     private User[]? _users;
     
@@ -80,7 +67,15 @@ else
         await UpdateUsers();
     }
 
-    private async Task UpdateUsers()
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _userMenu.Parent = this;
+        }
+    }
+
+    public async Task UpdateUsers()
     {
         var result = await GetUsersFromBackend();
 
@@ -97,29 +92,13 @@ else
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<IEnumerable<User>>($"Administration");
+            var response = await Http.GetFromJsonAsync<IEnumerable<User>>($"Administration/ListUsers");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
             return null;
-        }
-    }
-
-    private async Task RemoveRole(string userName, string roleName)
-    {
-        try
-        {
-            await Http.PutAsJsonAsync(
-                $"Administration/RemoveRole", 
-                new RemoveRoleCommand { UserName = userName, RoleName = roleName }
-                );
-            await UpdateUsers();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
         }
     }
 }

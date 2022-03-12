@@ -1,23 +1,46 @@
 @using DiplomaThesis.Shared.Models
-@using System.Xml.Schema
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net
+@using DiplomaThesis.Shared.Commands
 
-<div class="flex-column float-end" 
+
+@inject HttpClient Http
+
+<div class="flex-column float-end"
      style="display: @(ShowUserMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
-    <span>@User?.Id</span>
-    <span>@User?.Name</span>
-    <table class="table">
-        @if (User?.Roles != null)
-        {
-            foreach (var role in User?.Roles)
+    
+    @if (User is null || _roles is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <span>@User.Id</span>
+        <span>@User.Name</span>
+        <table class="table">
+            @foreach (var role in _roles)
             {
                 <tr>
                     <td>
                         @role.Name
                     </td>
+                    @if (!role.Name.Equals("Admin"))
+                    {
+                        @if (User.Roles.Any(roleInUser => roleInUser.Name.Equals(role.Name)))
+                        {
+                            <button class="btn btn-outline-dark oi oi-minus"
+                                    @onclick="() => RemoveRole(User.Name, role.Name)"></button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-dark oi oi-plus"
+                                    @onclick="() => AddRole(User.Name, role.Name)"></button>
+                        }
+                    }
                 </tr>
             }
-        }
-    </table>
+        </table>
+    }
     <button
         class="btn btn-outline-dark flex-fill"
         style="width: 100%"
@@ -27,8 +50,18 @@
 </div>
 
 @code {
+    public Administration Parent { get; set; } = null!;
+
     private User? User { get; set; }
-    
+
+    private Role[]? _roles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var roles = await GetRolesFromBackend();
+        _roles = roles;
+    }
+
     public bool ShowUserMenu { get; set; }
 
     public void ToggleUserMenu()
@@ -41,5 +74,51 @@
         User = user;
         ShowUserMenu = true;
         StateHasChanged();
+    }
+
+    private async Task<Role[]?> GetRolesFromBackend()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<IEnumerable<Role>>($"Administration/ListRoles");
+            return response?.ToArray();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+            return null;
+        }
+    }
+    
+    private async Task AddRole(string userName, string roleName)
+    {
+        try
+        {
+            await Http.PutAsJsonAsync(
+                $"Administration/AddRole",
+                new AddRoleCommand { UserName = userName, RoleName = roleName }
+                );
+            await Parent.UpdateUsers();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task RemoveRole(string userName, string roleName)
+    {
+        try
+        {
+            await Http.PutAsJsonAsync(
+                $"Administration/RemoveRole", 
+                new RemoveRoleCommand { UserName = userName, RoleName = roleName }
+                );
+            await Parent.UpdateUsers();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
     }
 }
