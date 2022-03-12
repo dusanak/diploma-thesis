@@ -1,16 +1,8 @@
 @using DiplomaThesis.Shared.Models
 @using System.Xml.Schema
-@* <div class="top-row ps-3 navbar navbar-dark"> *@
-@*     <div class="container-fluid"> *@
-@*         <a class="navbar-brand" href="">DiplomaThesis</a> *@
-@*         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleUserMenu"> *@
-@*             <span class="navbar-toggler-icon"></span> *@
-@*         </button> *@
-@*     </div> *@
-@* </div> *@
 
-
-<div class="flex-column" style="display: @(ShowUserMenu ? "block" : "none")">
+<div class="flex-column float-end" 
+     style="display: @(ShowUserMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
     <span>@User?.Id</span>
     <span>@User?.Name</span>
     <table class="table">
@@ -27,7 +19,8 @@
         }
     </table>
     <button
-        class="btn btn-outline-dark"
+        class="btn btn-outline-dark flex-fill"
+        style="width: 100%"
         @onclick="ToggleUserMenu">
         Hide
     </button>

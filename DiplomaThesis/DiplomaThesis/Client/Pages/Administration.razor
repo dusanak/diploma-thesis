@@ -17,55 +17,55 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Roles</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var user in _users)
-        {
+    <div class="d-flex">
+        <table class="table">
+            <thead>
             <tr>
-                <td>@user.Id</td>
-                <td>@user.Name</td>
-                <td>
-                    <table class="table">
-                        @foreach (var role in user.Roles)
-                        {
-                            <tr>
-                                <td>
-                                    @role.Name
-                                </td>
-                                <td>
-                                    @if (!role.Name.Equals("Admin"))
-                                    {
-                                        <button
-                                            class="btn btn-outline-dark oi oi-trash"
-                                            @onclick="() => RemoveRole(user.Name, role.Name)">
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </table>
-                </td>
-                <td>
-                    <button
-                        class="btn btn-outline-dark"
-                        @onclick="() => _userMenu.ShowUser(user)">
-                        Select
-                    </button>
-                </td>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Roles</th>
+                <th></th>
             </tr>
-        }
-        </tbody>
-    </table>
-    
-    <div class="sidebar" style="right:0">
+            </thead>
+            <tbody>
+            @foreach (var user in _users)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Name</td>
+                    <td>
+                        <table class="table">
+                            @foreach (var role in user.Roles)
+                            {
+                                <tr>
+                                    <td>
+                                        @role.Name
+                                    </td>
+                                    <td>
+                                        @if (!role.Name.Equals("Admin"))
+                                        {
+                                            <button
+                                                class="btn btn-outline-dark oi oi-trash"
+                                                @onclick="() => RemoveRole(user.Name, role.Name)">
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </table>
+                    </td>
+                    <td>
+                        <button
+                            class="btn btn-outline-dark"
+                            @onclick="() => _userMenu.ShowUser(user)">
+                            Select
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        
         <UserMenu @ref="_userMenu"/>
     </div>
 }
