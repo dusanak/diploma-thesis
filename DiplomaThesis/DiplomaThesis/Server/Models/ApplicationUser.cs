@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace DiplomaThesis.Server.Models
+namespace DiplomaThesis.Server.Models;
+
+public class ApplicationUser : IdentityUser
 {
-    public class ApplicationUser : IdentityUser
-    {
-    }
+    public UserGroup? UserGroup { get; set; }
 }

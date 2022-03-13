@@ -1,11 +1,10 @@
 @page "/administration"
-@using DiplomaThesis.Shared.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Client.Pages.Components
+@using DiplomaThesis.Shared.Contracts
 @attribute [Authorize(Roles = "Admin")]
-@inject HttpClient Http
+@inject HttpClient _http
 
 <PageTitle>Administration</PageTitle>
 
@@ -37,7 +36,7 @@ else
                         <div class="flex-row">
                             @foreach (var role in user.Roles)
                             {
-                                @role.Name
+                                <text>@role.Name&nbsp;</text>
                             }
                         </div>
                     </td>
@@ -53,29 +52,21 @@ else
             </tbody>
         </table>
         
-        <UserMenu @ref="_userMenu"/>
+        <UserMenu @ref="_userMenu" OnUserChanged="UpdateUsers"/>
     </div>
 }
 
 @code {
     private UserMenu _userMenu = null!;
     
-    private User[]? _users;
+    private UserContract[]? _users;
     
     protected override async Task OnInitializedAsync()
     {
         await UpdateUsers();
     }
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _userMenu.Parent = this;
-        }
-    }
-
-    public async Task UpdateUsers()
+    private async Task UpdateUsers()
     {
         var result = await GetUsersFromBackend();
 
@@ -88,11 +79,11 @@ else
         }
     }
 
-    private async Task<User[]?> GetUsersFromBackend()
+    private async Task<UserContract[]?> GetUsersFromBackend()
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<IEnumerable<User>>($"Administration/ListUsers");
+            var response = await _http.GetFromJsonAsync<IEnumerable<UserContract>>($"Administration/ListUsers");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)

@@ -1,22 +1,26 @@
-@using DiplomaThesis.Shared.Models
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Net
+@using DiplomaThesis.Client.Extensions
 @using DiplomaThesis.Shared.Commands
+@using DiplomaThesis.Shared.Contracts
 
-
-@inject HttpClient Http
+@inject HttpClient _http
 
 <div class="flex-column float-end"
      style="display: @(ShowUserMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
-    
+
     @if (User is null || _roles is null)
     {
-        <p><em>Loading...</em></p>
+        <p>
+            <em>Loading...</em>
+        </p>
     }
     else
     {
-        <span>@User.Id</span>
-        <span>@User.Name</span>
+        <p><strong>Id:</strong>&nbsp;@User.Id</p>
+        <p><strong>Name:</strong>&nbsp;@User.Name</p>
+        <hr/>
+        <strong>Roles:</strong>
         <table class="table">
             @foreach (var role in _roles)
             {
@@ -29,18 +33,29 @@
                         @if (User.Roles.Any(roleInUser => roleInUser.Name.Equals(role.Name)))
                         {
                             <button class="btn btn-outline-dark oi oi-minus"
-                                    @onclick="() => RemoveRole(User.Name, role.Name)"></button>
+                                    @onclick="() => RemoveRole(User.Name, role.Name)">
+                            </button>
                         }
                         else
                         {
                             <button class="btn btn-outline-dark oi oi-plus"
-                                    @onclick="() => AddRole(User.Name, role.Name)"></button>
+                                    @onclick="() => AddRole(User.Name, role.Name)">
+                            </button>
                         }
                     }
                 </tr>
             }
         </table>
+        
+        <hr/>
+        <button
+            class="btn btn-outline-dark flex-fill"
+            style="width: 100%; background-color: red"
+            @onclick="DeleteUser">
+            Delete user
+        </button>
     }
+    <hr/>
     <button
         class="btn btn-outline-dark flex-fill"
         style="width: 100%"
@@ -50,11 +65,13 @@
 </div>
 
 @code {
-    public Administration Parent { get; set; } = null!;
 
-    private User? User { get; set; }
+    [Parameter]
+    public EventCallback OnUserChanged { get; set; }
 
-    private Role[]? _roles;
+    private UserContract? User { get; set; }
+
+    private RoleContract[]? _roles;
 
     protected override async Task OnInitializedAsync()
     {
@@ -69,18 +86,18 @@
         ShowUserMenu = !ShowUserMenu;
     }
 
-    public void ShowUser(User user)
+    public void ShowUser(UserContract user)
     {
         User = user;
         ShowUserMenu = true;
         StateHasChanged();
     }
 
-    private async Task<Role[]?> GetRolesFromBackend()
+    private async Task<RoleContract[]?> GetRolesFromBackend()
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<IEnumerable<Role>>($"Administration/ListRoles");
+            var response = await _http.GetFromJsonAsync<IEnumerable<RoleContract>>($"Administration/ListRoles");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -89,16 +106,21 @@
             return null;
         }
     }
-    
+
     private async Task AddRole(string userName, string roleName)
     {
         try
         {
-            await Http.PutAsJsonAsync(
+            var result = await _http.PutAsJsonAsync(
                 $"Administration/AddRole",
                 new AddRoleCommand { UserName = userName, RoleName = roleName }
                 );
-            await Parent.UpdateUsers();
+            if (result.IsSuccessStatusCode)
+            {
+                await OnUserChanged.InvokeAsync();
+                await GetUser();
+                StateHasChanged();
+            }
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -110,15 +132,52 @@
     {
         try
         {
-            await Http.PutAsJsonAsync(
-                $"Administration/RemoveRole", 
+            await _http.PutAsJsonAsync(
+                $"Administration/RemoveRole",
                 new RemoveRoleCommand { UserName = userName, RoleName = roleName }
                 );
-            await Parent.UpdateUsers();
+            await OnUserChanged.InvokeAsync();
+            await GetUser();
+            StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
     }
+
+    private async Task GetUser()
+    {
+        try
+        {
+            var result = await _http.GetFromJsonAsync<UserContract>($"Administration/GetUser/{User!.Id}");
+            User = result;
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task DeleteUser()
+    {
+        try
+        {
+            var response = await _http.DeleteAsJsonAsync(
+                $"Administration/DeleteUser",
+                new RemoveRoleCommand { UserName = User!.Name }
+                );
+            if (response.IsSuccessStatusCode)
+            {
+                ToggleUserMenu();
+                await OnUserChanged.InvokeAsync();
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
 }

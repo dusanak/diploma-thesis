@@ -8,14 +8,14 @@
 <AuthorizeView>
     <Authorized>
         <a href="authentication/profile">@context.User.Identity?.Name</a>
-        @{
-            var identity = (ClaimsIdentity)context.User.Identity!;
-            var roleClaims = identity.FindAll(identity.RoleClaimType).ToArray();
-            @foreach(var role in roleClaims) 
-            {
-                <text>&nbsp;@role.Value</text>
-            }
-        }
+        @* @{ *@
+        @*     var identity = (ClaimsIdentity)context.User.Identity!; *@
+        @*     var roleClaims = identity.FindAll(identity.RoleClaimType).ToArray(); *@
+        @*     @foreach(var role in roleClaims)  *@
+        @*     { *@
+        @*         <text>&nbsp;@role.Value</text> *@
+        @*     } *@
+        @* } *@
         <button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
     </Authorized>
     <NotAuthorized>

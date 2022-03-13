@@ -1,11 +1,13 @@
 using System.Security.Claims;
+using DiplomaThesis.Server.Data;
 using DiplomaThesis.Server.Models;
 using DiplomaThesis.Shared.Commands;
-using DiplomaThesis.Shared.Models;
+using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UserGroup = DiplomaThesis.Server.Models.UserGroup;
 
 namespace DiplomaThesis.Server.Controllers
 {
@@ -17,10 +19,32 @@ namespace DiplomaThesis.Server.Controllers
         private UserManager<ApplicationUser> _userManager;
         private RoleManager<IdentityRole> _roleManager;
 
-        public AdministrationController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        private ApplicationDbContext _context;
+
+        public AdministrationController(
+            UserManager<ApplicationUser> userManager, 
+            RoleManager<IdentityRole> roleManager, 
+            ApplicationDbContext context
+            )
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<ActionResult> GetUser(
+            [FromRoute] Guid userId
+            )
+        {
+            var user = await _context.Users.FindAsync(userId.ToString());
+
+            if (user is null) return NotFound();
+            
+            var roles = await _userManager.GetRolesAsync(user);
+            var resultRoles = roles.Select(x => new RoleContract { Name = x }).ToArray();
+            var result = new UserContract { Id = Guid.Parse(user.Id), Name = user.UserName, Roles = resultRoles };
+            return Ok(result);
         }
 
         [HttpGet]
@@ -28,14 +52,14 @@ namespace DiplomaThesis.Server.Controllers
         {
             var users = await _userManager.Users.ToListAsync();
 
-            var result = new List<User>();
+            var result = new List<UserContract>();
 
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
 
-                var resultRoles = roles.Select(x => new Role { Name = x }).ToArray();
-                result.Add(new User {Id = Guid.Parse(user.Id), Name = user.UserName, Roles = resultRoles});
+                var resultRoles = roles.Select(x => new RoleContract { Name = x }).ToArray();
+                result.Add(new UserContract { Id = Guid.Parse(user.Id), Name = user.UserName });
             }
             
             return Ok(result.AsEnumerable());
@@ -51,18 +75,18 @@ namespace DiplomaThesis.Server.Controllers
         
         [HttpPut]
         public async Task<ActionResult> AddRole(
-            [FromBody] AddRoleCommand value)
+            [FromBody] AddRoleCommand addRoleCommand)
         {
-            var checkRoleExists = await _roleManager.RoleExistsAsync(value.RoleName);
+            var checkRoleExists = await _roleManager.RoleExistsAsync(addRoleCommand.RoleName);
             if (!checkRoleExists) return BadRequest();
             
-            var user = await _userManager.FindByNameAsync(value.UserName);
-            if (user == null) return BadRequest();
+            var user = await _userManager.FindByNameAsync(addRoleCommand.UserName);
+            if (user is null) return NotFound();
 
-            var checkUserHasRole = await _userManager.IsInRoleAsync(user, value.RoleName);
+            var checkUserHasRole = await _userManager.IsInRoleAsync(user, addRoleCommand.RoleName);
             if (checkUserHasRole) return Ok();
 
-            var result = await _userManager.AddToRoleAsync(user, value.RoleName);
+            var result = await _userManager.AddToRoleAsync(user, addRoleCommand.RoleName);
             if (!result.Succeeded) return BadRequest();
 
             return Ok();
@@ -70,17 +94,17 @@ namespace DiplomaThesis.Server.Controllers
         
         [HttpPut]
         public async Task<ActionResult> RemoveRole(
-            [FromBody] RemoveRoleCommand value)
+            [FromBody] RemoveRoleCommand removeRoleCommand)
         {
-            if (value.RoleName == "Admin") return BadRequest();
+            if (removeRoleCommand.RoleName == "Admin") return BadRequest();
 
-            var user = await _userManager.FindByNameAsync(value.UserName);
-            if (user == null) return BadRequest();
+            var user = await _userManager.FindByNameAsync(removeRoleCommand.UserName);
+            if (user is null) return NotFound();
 
-            var checkUserHasRole = await _userManager.IsInRoleAsync(user, value.RoleName);
+            var checkUserHasRole = await _userManager.IsInRoleAsync(user, removeRoleCommand.RoleName);
             if (!checkUserHasRole) return Ok();
             
-            var result = await _userManager.RemoveFromRoleAsync(user, value.RoleName);
+            var result = await _userManager.RemoveFromRoleAsync(user, removeRoleCommand.RoleName);
             if (!result.Succeeded) return BadRequest();
 
             return Ok();
@@ -88,16 +112,96 @@ namespace DiplomaThesis.Server.Controllers
         
         [HttpDelete]
         public async Task<ActionResult> DeleteUser(
-            [FromBody] DeleteUserCommand value)
+            [FromBody] DeleteUserCommand deleteUserCommand)
         {
-            var user = await _userManager.FindByNameAsync(value.UserName);
-            if (user == null) return Ok();
+            var user = await _userManager.FindByNameAsync(deleteUserCommand.UserName);
+            if (user is null) return NotFound();
+
+            var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (loggedInUserId.Equals(user.Id)) return BadRequest();
 
             var result = await _userManager.DeleteAsync(user);
 
             if (!result.Succeeded)
-                return BadRequest();
+                return StatusCode(500);
 
+            return Ok();
+        }
+        
+        [HttpGet]
+        public ActionResult ListUserGroups()
+        {
+            var result = _context.UserGroups;
+            
+            return Ok(result.AsEnumerable());
+        }
+        
+        [HttpPost]
+        public ActionResult CreateUserGroup(
+            [FromBody] CreateUserGroupCommand createUserGroupCommand)
+        {
+            if (_context.UserGroups.Any(group => group.Name.Equals(createUserGroupCommand.Name)))
+            {
+                return BadRequest();
+            }
+
+            var userGroup = new UserGroup
+            {
+                Id = Guid.NewGuid(),
+                Name = createUserGroupCommand.Name,
+                Users = new List<ApplicationUser>()
+            };
+
+            var result = _context.UserGroups.Add(userGroup);
+            _context.SaveChanges();
+            
+            return Ok(new UserGroupContract { Id = result.Entity.Id, Name = result.Entity.Name });
+        }
+        
+        [HttpDelete]
+        public ActionResult DeleteUserGroup(
+            [FromRoute] Guid userGroupId)
+        {
+            var userGroup = _context.UserGroups.Find(userGroupId.ToString());
+            if (userGroup is null) return NotFound();
+
+            _context.UserGroups.Remove(userGroup);
+            _context.SaveChanges();
+            
+            return Ok();
+        }
+        
+        [HttpPut]
+        public ActionResult AddUserToUserGroup(
+            [FromBody] AddUserToUserGroupCommand addUserToUserGroupCommand)
+        {
+            var userGroup = _context.UserGroups.Find(addUserToUserGroupCommand.UserGroupId.ToString());
+            if (userGroup is null) return NotFound();
+            
+            var user = _context.Users.Find(addUserToUserGroupCommand.UserId.ToString());
+            if (user is null) return NotFound();
+
+            user.UserGroup = userGroup;
+
+            _context.SaveChanges();
+            
+            return Ok();
+        }
+        
+        [HttpPut]
+        public ActionResult RemoveUserFromUserGroup(
+            [FromBody] RemoveUserFromUserGroupCommand removeUserFromUserGroupCommand)
+        {
+            var userGroup = _context.UserGroups.Find(removeUserFromUserGroupCommand.UserGroupId.ToString());
+            if (userGroup is null) return NotFound();
+            
+            var user = _context.Users.Find(removeUserFromUserGroupCommand.UserId.ToString());
+            if (user is null) return NotFound();
+
+            user.UserGroup = null;
+
+            _context.SaveChanges();
+            
             return Ok();
         }
     }

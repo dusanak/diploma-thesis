@@ -34,7 +34,7 @@ namespace DiplomaThesis.Server.Controllers
         }
         
         [HttpGet("GetForecasts/{number:int}", Name = "GetWeather")]
-        public async Task<ActionResult> GetForecasts([FromRoute] int number = 10)
+        public ActionResult GetForecasts([FromRoute] int number = 10)
         {
             if (number < 1)
             {
