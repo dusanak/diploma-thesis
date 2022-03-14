@@ -10,60 +10,104 @@
 
 <h1>Administration</h1>
 
-@if (_users == null)
+@if (_users is null || _userGroups is null)
 {
-    <p><em>Loading...</em></p>
+    <p>
+        <em>Loading...</em>
+    </p>
 }
 else
 {
     <div class="d-flex">
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Roles</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var user in _users)
-            {
+        <button class="btn btn-outline-dark" @onclick="() => _showUsers = true">Users</button>
+        <button class="btn btn-outline-dark"@onclick="() => _showUsers = false">User groups</button>
+    </div>
+    <div class="d-flex">
+        @if (_showUsers)
+        {
+            <table class="table">
+                <thead>
                 <tr>
-                    <td>@user.Id</td>
-                    <td>@user.Name</td>
-                    <td>
-                        <div class="flex-row">
-                            @foreach (var role in user.Roles)
-                            {
-                                <text>@role.Name&nbsp;</text>
-                            }
-                        </div>
-                    </td>
-                    <td>
-                        <button
-                            class="btn btn-outline-dark"
-                            @onclick="() => _userMenu.ShowUser(user)">
-                            Select
-                        </button>
-                    </td>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Group</th>
+                    <th>Roles</th>
+                    <th></th>
                 </tr>
-            }
-            </tbody>
-        </table>
-        
-        <UserMenu @ref="_userMenu" OnUserChanged="UpdateUsers"/>
+                </thead>
+                <tbody>
+                @foreach (var user in _users)
+                {
+                    <tr>
+                        <td>@user.Id</td>
+                        <td>@user.Name</td>
+                        <td>
+                            <div class="flex-column">
+                                @foreach (var role in user.Roles)
+                                {
+                                    <text>@role.Name&nbsp;</text>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <button
+                                class="btn btn-outline-dark"
+                                @onclick="() => _userMenu.ShowUser(user)">
+                                Select
+                            </button>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <UserMenu @ref="_userMenu" OnUserChanged="UpdateUsers"/>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Users</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var userGroup in _userGroups)
+                {
+                    <tr>
+                        <td>@userGroup.Id</td>
+                        <td>@userGroup.Name</td>
+                        <td>
+                            <div class="flex-column">
+                                @foreach (var userId in userGroup.Users)
+                                {
+                                    <text>@_users.First(user => user.Id.Equals(userId)).Name&nbsp;</text>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
     </div>
 }
 
 @code {
     private UserMenu _userMenu = null!;
-    
+
     private UserContract[]? _users;
-    
+    private UserGroupContract[]? _userGroups;
+
+    private bool _showUsers = true;
+
     protected override async Task OnInitializedAsync()
     {
         await UpdateUsers();
+        await UpdateUserGroups();
+        StateHasChanged();
     }
 
     private async Task UpdateUsers()
@@ -72,10 +116,7 @@ else
 
         if (result is not null)
         {
-            if (result.Length > 0)
-            {
-                _users = result;
-            }
+            _users = result;
         }
     }
 
@@ -92,4 +133,29 @@ else
             return null;
         }
     }
+
+    private async Task UpdateUserGroups()
+    {
+        var result = await GetUserGroupsFromBackend();
+
+        if (result is not null)
+        {
+            _userGroups = result;
+        }
+    }
+
+    private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
+            return response?.ToArray();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+            return null;
+        }
+    }
+
 }

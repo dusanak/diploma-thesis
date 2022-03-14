@@ -42,8 +42,14 @@ namespace DiplomaThesis.Server.Controllers
             if (user is null) return NotFound();
             
             var roles = await _userManager.GetRolesAsync(user);
-            var resultRoles = roles.Select(x => new RoleContract { Name = x }).ToArray();
-            var result = new UserContract { Id = Guid.Parse(user.Id), Name = user.UserName, Roles = resultRoles };
+            var resultRoles = roles.Select(x => new RoleContract { Name = x });
+            var result = new UserContract
+            {
+                Id = Guid.Parse(user.Id),
+                Name = user.UserName,
+                UserGroupId = user.UserGroup?.Id ?? Guid.Empty,
+                Roles = resultRoles
+            };
             return Ok(result);
         }
 
@@ -58,8 +64,14 @@ namespace DiplomaThesis.Server.Controllers
             {
                 var roles = await _userManager.GetRolesAsync(user);
 
-                var resultRoles = roles.Select(x => new RoleContract { Name = x }).ToArray();
-                result.Add(new UserContract { Id = Guid.Parse(user.Id), Name = user.UserName });
+                var resultRoles = roles.Select(x => new RoleContract { Name = x });
+                result.Add(new UserContract
+                {
+                    Id = Guid.Parse(user.Id),
+                    Name = user.UserName,
+                    UserGroupId = user.UserGroup?.Id ?? Guid.Empty,
+                    Roles = resultRoles
+                });
             }
             
             return Ok(result.AsEnumerable());
@@ -131,7 +143,12 @@ namespace DiplomaThesis.Server.Controllers
         [HttpGet]
         public ActionResult ListUserGroups()
         {
-            var result = _context.UserGroups;
+            var result = _context.UserGroups.Select(group => new UserGroupContract
+            {
+                Id = group.Id,
+                Name = group.Name,
+                Users = group.Users.Select(user => Guid.Parse(user.Id))
+            }).ToList();
             
             return Ok(result.AsEnumerable());
         }
@@ -155,7 +172,12 @@ namespace DiplomaThesis.Server.Controllers
             var result = _context.UserGroups.Add(userGroup);
             _context.SaveChanges();
             
-            return Ok(new UserGroupContract { Id = result.Entity.Id, Name = result.Entity.Name });
+            return Ok(new UserGroupContract
+            {
+                Id = result.Entity.Id,
+                Name = result.Entity.Name,
+                Users = new List<Guid>()
+            });
         }
         
         [HttpDelete]
