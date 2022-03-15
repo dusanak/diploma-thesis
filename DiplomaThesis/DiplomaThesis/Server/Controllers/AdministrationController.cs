@@ -16,10 +16,10 @@ namespace DiplomaThesis.Server.Controllers
     [Route("[controller]/[action]")]
     public class AdministrationController : ControllerBase
     {
-        private UserManager<ApplicationUser> _userManager;
-        private RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        private ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
 
         public AdministrationController(
             UserManager<ApplicationUser> userManager, 
@@ -194,33 +194,23 @@ namespace DiplomaThesis.Server.Controllers
         }
         
         [HttpPut]
-        public ActionResult AddUserToUserGroup(
-            [FromBody] AddUserToUserGroupCommand addUserToUserGroupCommand)
+        public ActionResult MoveUserToUserGroup(
+            [FromBody] MoveUserToUserGroupCommand moveUserToUserGroupCommand)
         {
-            var userGroup = _context.UserGroups.Find(addUserToUserGroupCommand.UserGroupId.ToString());
-            if (userGroup is null) return NotFound();
-            
-            var user = _context.Users.Find(addUserToUserGroupCommand.UserId.ToString());
+            var user = _context.Users.Find(moveUserToUserGroupCommand.UserId.ToString());
             if (user is null) return NotFound();
 
-            user.UserGroup = userGroup;
-
-            _context.SaveChanges();
-            
-            return Ok();
-        }
-        
-        [HttpPut]
-        public ActionResult RemoveUserFromUserGroup(
-            [FromBody] RemoveUserFromUserGroupCommand removeUserFromUserGroupCommand)
-        {
-            var userGroup = _context.UserGroups.Find(removeUserFromUserGroupCommand.UserGroupId.ToString());
-            if (userGroup is null) return NotFound();
-            
-            var user = _context.Users.Find(removeUserFromUserGroupCommand.UserId.ToString());
-            if (user is null) return NotFound();
-
-            user.UserGroup = null;
+            if (moveUserToUserGroupCommand.UserGroupId.Equals(Guid.Empty))
+            {
+                user.UserGroup = null;
+            }
+            else
+            {
+                var userGroup = _context.UserGroups.Find(moveUserToUserGroupCommand.UserGroupId);
+                if (userGroup is null) return NotFound();
+                
+                user.UserGroup = userGroup;
+            }
 
             _context.SaveChanges();
             

@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using DiplomaThesis.Client.Pages.Components
+@using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Shared.Contracts
 @attribute [Authorize(Roles = "Admin")]
 @inject HttpClient _http
@@ -19,78 +20,93 @@
 else
 {
     <div class="d-flex">
-        <button class="btn btn-outline-dark" @onclick="() => _showUsers = true">Users</button>
-        <button class="btn btn-outline-dark"@onclick="() => _showUsers = false">User groups</button>
+        <button class="btn @(_showUsers ? "btn-primary" : "btn-outline-primary")" @onclick="() => _showUsers = true">Users</button>
+        <button class="btn @(!_showUsers ? "btn-primary" : "btn-outline-primary")" @onclick="() => _showUsers = false">User groups</button>
     </div>
     <div class="d-flex">
         @if (_showUsers)
         {
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Name</th>
-                    <th>Group</th>
-                    <th>Roles</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach (var user in _users)
-                {
+            <div class="flex-column">
+                <table class="table">
+                    <thead>
                     <tr>
-                        <td>@user.Id</td>
-                        <td>@user.Name</td>
-                        <td>
-                            <div class="flex-column">
-                                @foreach (var role in user.Roles)
-                                {
-                                    <text>@role.Name&nbsp;</text>
-                                }
-                            </div>
-                        </td>
-                        <td>
-                            <button
-                                class="btn btn-outline-dark"
-                                @onclick="() => _userMenu.ShowUser(user)">
-                                Select
-                            </button>
-                        </td>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Group</th>
+                        <th>Roles</th>
+                        <th></th>
                     </tr>
-                }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    @foreach (var user in _users)
+                    {
+                        <tr>
+                            <td>@user.Id</td>
+                            <td>@user.Name</td>
+                            <td>
+                                <div class="flex-column">
+                                    @foreach (var role in user.Roles)
+                                    {
+                                        <text>@role.Name&nbsp;</text>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <button
+                                    class="btn btn-outline-dark"
+                                    @onclick="() => _userMenu.ShowUser(user)">
+                                    Select
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
 
-            <UserMenu @ref="_userMenu" OnUserChanged="UpdateUsers"/>
+            <UserMenu @ref="_userMenu" OnUserChanged="UpdateData"/>
         }
         else
         {
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Name</th>
-                    <th>Users</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach (var userGroup in _userGroups)
-                {
+            <div class="flex-column">
+                <table class="table">
+                    <thead>
                     <tr>
-                        <td>@userGroup.Id</td>
-                        <td>@userGroup.Name</td>
-                        <td>
-                            <div class="flex-column">
-                                @foreach (var userId in userGroup.Users)
-                                {
-                                    <text>@_users.First(user => user.Id.Equals(userId)).Name&nbsp;</text>
-                                }
-                            </div>
-                        </td>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Users</th>
                     </tr>
-                }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    @foreach (var userGroup in _userGroups)
+                    {
+                        <tr>
+                            <td>@userGroup.Id</td>
+                            <td>@userGroup.Name</td>
+                            <td>
+                                <div class="flex-column">
+                                    @foreach (var userId in userGroup.Users)
+                                    {
+                                        <text>@_users.First(user => user.Id.Equals(userId)).Name&nbsp;</text>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                <div class="flex-row">
+                    <label>
+                        <input placeholder="New user group name"
+                               @bind="_newUserGroupName"
+                               @bind:event="oninput"/>
+                    </label>
+                    <button class="btn btn-outline-dark"
+                            @onclick="CreateUserGroup">
+                        Create
+                    </button>
+                </div>
+            </div>
         }
     </div>
 }
@@ -101,23 +117,31 @@ else
     private UserContract[]? _users;
     private UserGroupContract[]? _userGroups;
 
+    private string _newUserGroupName = "";
+
     private bool _showUsers = true;
 
     protected override async Task OnInitializedAsync()
     {
-        await UpdateUsers();
-        await UpdateUserGroups();
-        StateHasChanged();
+        await UpdateData();
     }
 
-    private async Task UpdateUsers()
+    private async Task UpdateData()
     {
-        var result = await GetUsersFromBackend();
+        var users = await GetUsersFromBackend();
+        var userGroups = await GetUserGroupsFromBackend();
 
-        if (result is not null)
+        if (users is not null)
         {
-            _users = result;
+            _users = users;
         }
+
+        if (userGroups is not null)
+        {
+            _userGroups = userGroups;
+        }
+
+        StateHasChanged();
     }
 
     private async Task<UserContract[]?> GetUsersFromBackend()
@@ -131,16 +155,6 @@ else
         {
             exception.Redirect();
             return null;
-        }
-    }
-
-    private async Task UpdateUserGroups()
-    {
-        var result = await GetUserGroupsFromBackend();
-
-        if (result is not null)
-        {
-            _userGroups = result;
         }
     }
 
@@ -158,4 +172,29 @@ else
         }
     }
 
+    private async Task CreateUserGroup()
+    {
+        if (_newUserGroupName.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await _http.PostAsJsonAsync<CreateUserGroupCommand>(
+                $"Administration/CreateUserGroup",
+                new CreateUserGroupCommand { Name = _newUserGroupName }
+                );
+            if (response.IsSuccessStatusCode)
+            {
+                await UpdateData();
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
 }
+

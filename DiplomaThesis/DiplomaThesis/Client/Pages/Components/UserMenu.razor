@@ -3,13 +3,14 @@
 @using DiplomaThesis.Client.Extensions
 @using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Shared.Contracts
+@using System.Diagnostics
 
 @inject HttpClient _http
 
 <div class="flex-column float-end"
      style="display: @(ShowUserMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
 
-    @if (User is null || _roles is null)
+    @if (User is null || Roles is null || UserGroups is null)
     {
         <p>
             <em>Loading...</em>
@@ -22,7 +23,7 @@
         <hr/>
         <strong>Roles:</strong>
         <table class="table">
-            @foreach (var role in _roles)
+            @foreach (var role in Roles)
             {
                 <tr>
                     <td>
@@ -48,9 +49,25 @@
         </table>
         
         <hr/>
+        <strong>User group:</strong>
+        <label>
+            <select id="user_groups" 
+                    name="user_groups" 
+                    @bind="SelectedUserGroupId">
+                <option value="@Guid.Empty.ToString()">&lt;No group assigned&gt;</option>
+                @foreach (var userGroup in UserGroups)
+                {
+                    <option value="@userGroup.Id.ToString()" selected=@userGroup.Id.ToString().Equals(SelectedUserGroupId)>
+                        @userGroup.Name
+                    </option>
+                }
+            </select>
+        </label>
+
+            <hr/>
         <button
-            class="btn btn-outline-dark flex-fill"
-            style="width: 100%; background-color: red"
+            class="btn btn-outline-danger flex-fill"
+            style="width: 100%"
             @onclick="DeleteUser">
             Delete user
         </button>
@@ -71,12 +88,27 @@
 
     private UserContract? User { get; set; }
 
-    private RoleContract[]? _roles;
+    private RoleContract[]? Roles { get; set; }
+    private UserGroupContract[]? UserGroups { get; set; }
+
+    private string _selectedUserGroupId = Guid.Empty.ToString();
+    private string SelectedUserGroupId
+    {
+        get => _selectedUserGroupId;
+        set
+        {
+            _selectedUserGroupId = value;
+            SelectedUserGroupChanged();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var roles = await GetRolesFromBackend();
-        _roles = roles;
+        Roles = roles;
+
+        var userGroups = await GetUserGroupsFromBackend();
+        UserGroups = userGroups;
     }
 
     public bool ShowUserMenu { get; set; }
@@ -90,7 +122,18 @@
     {
         User = user;
         ShowUserMenu = true;
+        SelectedUserGroupId = User.UserGroupId.ToString();
         StateHasChanged();
+    }
+    
+    private async Task SelectedUserGroupChanged()
+    {
+        Console.WriteLine("Guid is " + SelectedUserGroupId);
+        Console.WriteLine("Guid is " + SelectedUserGroupId);
+        if (User is not null && !User.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
+        {
+            await MoveUserToUserGroup();
+        }
     }
 
     private async Task<RoleContract[]?> GetRolesFromBackend()
@@ -111,11 +154,11 @@
     {
         try
         {
-            var result = await _http.PutAsJsonAsync(
+            var response = await _http.PutAsJsonAsync(
                 $"Administration/AddRole",
                 new AddRoleCommand { UserName = userName, RoleName = roleName }
                 );
-            if (result.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
                 await OnUserChanged.InvokeAsync();
                 await GetUser();
@@ -150,8 +193,8 @@
     {
         try
         {
-            var result = await _http.GetFromJsonAsync<UserContract>($"Administration/GetUser/{User!.Id}");
-            User = result;
+            var response = await _http.GetFromJsonAsync<UserContract>($"Administration/GetUser/{User!.Id}");
+            User = response;
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -180,4 +223,38 @@
         }
     }
 
+    private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
+            return response?.ToArray();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+            return null;
+        }
+    }
+    
+    private async Task MoveUserToUserGroup()
+    {
+        try
+        {
+            var response = await _http.PutAsJsonAsync(
+                $"Administration/MoveUserToUserGroup",
+                new MoveUserToUserGroupCommand { UserId = User!.Id, UserGroupId = Guid.Parse(SelectedUserGroupId) }
+                );
+            if (response.IsSuccessStatusCode)
+            {
+                await OnUserChanged.InvokeAsync();
+                await GetUser();
+                StateHasChanged();
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
 }
