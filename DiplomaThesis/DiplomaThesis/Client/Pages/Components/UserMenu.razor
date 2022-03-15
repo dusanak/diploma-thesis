@@ -128,8 +128,8 @@
     
     private async Task SelectedUserGroupChanged()
     {
-        Console.WriteLine("Guid is " + SelectedUserGroupId);
-        Console.WriteLine("Guid is " + SelectedUserGroupId);
+        Console.WriteLine("Current user guid is " + User!.UserGroupId);
+        Console.WriteLine("Selected guid is " + SelectedUserGroupId);
         if (User is not null && !User.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
         {
             await MoveUserToUserGroup();
