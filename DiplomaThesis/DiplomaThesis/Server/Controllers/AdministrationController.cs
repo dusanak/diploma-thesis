@@ -42,12 +42,25 @@ namespace DiplomaThesis.Server.Controllers
             if (user is null) return NotFound();
             
             var roles = await _userManager.GetRolesAsync(user);
+
+            var userGroups = await _context.UserGroups.ToListAsync();
+            var userGroupId = userGroups.FirstOrDefault(
+                group =>
+                {
+                    if (group is null || group.Users is null)
+                    {
+                        return false;
+                    }
+                    return group.Users.Any(userInGroup => userInGroup.Id.Equals(userId.ToString()));
+                }, null)?.Id ?? Guid.Empty;
+            
             var resultRoles = roles.Select(x => new RoleContract { Name = x });
+            
             var result = new UserContract
             {
                 Id = Guid.Parse(user.Id),
                 Name = user.UserName,
-                UserGroupId = user.UserGroup?.Id ?? Guid.Empty,
+                UserGroupId = userGroupId,
                 Roles = resultRoles
             };
             return Ok(result);
@@ -57,19 +70,32 @@ namespace DiplomaThesis.Server.Controllers
         public async Task<ActionResult> ListUsers()
         {
             var users = await _userManager.Users.ToListAsync();
+            
+            var userGroups = await _context.UserGroups.ToListAsync();
 
             var result = new List<UserContract>();
 
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
+                
+                var userGroupId = userGroups.FirstOrDefault(
+                    group =>
+                    {
+                        if (group is null || group.Users is null)
+                        {
+                            return false;
+                        }
+                        return group.Users.Any(userInGroup => userInGroup.Id.Equals(user.Id));
+                    }, null)?.Id ?? Guid.Empty;
 
                 var resultRoles = roles.Select(x => new RoleContract { Name = x });
+                
                 result.Add(new UserContract
                 {
                     Id = Guid.Parse(user.Id),
                     Name = user.UserName,
-                    UserGroupId = user.UserGroup?.Id ?? Guid.Empty,
+                    UserGroupId = userGroupId,
                     Roles = resultRoles
                 });
             }
@@ -202,7 +228,18 @@ namespace DiplomaThesis.Server.Controllers
 
             if (moveUserToUserGroupCommand.UserGroupId.Equals(Guid.Empty))
             {
+                var userGroups = _context.UserGroups.ToList();
+                var userGroup = userGroups.FirstOrDefault(
+                    group =>
+                    {
+                        if (group is null || group.Users is null)
+                        {
+                            return false;
+                        }
+                        return group.Users.Any(userInGroup => userInGroup.Id.Equals(user.Id));
+                    }, null);
                 user.UserGroup = null;
+                userGroup?.Users.Remove(user);
             }
             else
             {

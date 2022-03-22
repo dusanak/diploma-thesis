@@ -53,11 +53,12 @@
         <label>
             <select id="user_groups" 
                     name="user_groups" 
-                    @bind="SelectedUserGroupId">
+                    value="@SelectedUserGroupId"
+                    @onchange="SelectedUserGroupChanged">
                 <option value="@Guid.Empty.ToString()">&lt;No group assigned&gt;</option>
                 @foreach (var userGroup in UserGroups)
                 {
-                    <option value="@userGroup.Id.ToString()" selected=@userGroup.Id.ToString().Equals(SelectedUserGroupId)>
+                    <option value="@userGroup.Id.ToString()">
                         @userGroup.Name
                     </option>
                 }
@@ -98,7 +99,7 @@
         set
         {
             _selectedUserGroupId = value;
-            SelectedUserGroupChanged();
+            StateHasChanged();
         }
     }
 
@@ -126,10 +127,20 @@
         StateHasChanged();
     }
     
-    private async Task SelectedUserGroupChanged()
+    private async Task SelectedUserGroupChanged(ChangeEventArgs e)
     {
+        var selectedUserGroupId = e.Value?.ToString();
+
+        if (selectedUserGroupId is null)
+        {
+            return;
+        }
+        
         Console.WriteLine("Current user guid is " + User!.UserGroupId);
-        Console.WriteLine("Selected guid is " + SelectedUserGroupId);
+        Console.WriteLine("Selected guid is " + selectedUserGroupId);
+
+        SelectedUserGroupId = selectedUserGroupId;
+        
         if (User is not null && !User.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
         {
             await MoveUserToUserGroup();
