@@ -1,6 +1,6 @@
-namespace DiplomaThesis.Shared.Contracts;
+namespace DiplomaThesis.Shared;
 
-public class DashboardContract
+public class ReportContract
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = null!;

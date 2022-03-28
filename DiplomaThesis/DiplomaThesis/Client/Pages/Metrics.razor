@@ -1,11 +1,114 @@
 @page "/metrics"
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Admin, Architect")]
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using DiplomaThesis.Shared
+@implements IAsyncDisposable
+@attribute [Authorize]
+@inject IJSRuntime _js
+@inject HttpClient _http
 
 <PageTitle>Metrics</PageTitle>
 
 <h1>Metrics</h1>
 
+<div class="d-flex flex-column">
+    <button @onclick="Reload">Reload</button>
+    @if (_reports is null || _reports.Length == 0)
+    {
+        <div>
+            <em>Ukázkový report</em>
+            <iframe title="Ukázkový report"  
+                    src="https://app.powerbi.com/view?r=eyJrIjoiNjlmMjA3OWQtZjgwOS00YmFmLThkNTMtNzY0YmM1N2YwZDg3IiwidCI6IjA2ZmZiNTU3LTRmMDYtNGQzOC1hNjM3LTRlNWRmZDc4N2RhMiIsImMiOjh9" 
+                    style="border: 0;"
+                    width="600" height="373.5" allow="fullscreen"></iframe>
+        </div>
+    }
+    else
+    {
+        <div>
+            <em>@_reports[0].Name</em>
+            <div @ref="@_powerBiElement" style="height:800px"></div>
+        </div>
+    @*     @foreach (var report in _reports) *@
+    @*     { *@
+    @* *@
+    @*     } *@
+    }
+</div>
+
 @code {
+    ReportContract[]? _reports;
+    ElementReference _powerBiElement;
+    IJSObjectReference? _embedModule;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _embedModule = await _js.InvokeAsync<IJSObjectReference>("import", "./scripts/powerbi-embed.js");
+                await UpdateData();
+                StateHasChanged();
+            }
+            // else if (_reports is {Length: > 0 } && _embedModule is not null)
+            // {
+            //     Console.WriteLine("BOOM");
+            //     await _embedModule.InvokeVoidAsync("embedReport",
+            //         _powerBiElement,
+            //         _reports[0].Id.ToString(),
+            //         _reports[0].EmbedUrl,
+            //         _reports[0].EmbedToken);
+            // }
+
+            // StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+    private async Task Reload()
+    {
+        await UpdateData();
+        await _embedModule.InvokeVoidAsync("embedReport",
+            _powerBiElement,
+            _reports[0].Id.ToString(),
+            _reports[0].EmbedUrl,
+            _reports[0].EmbedToken);
+        StateHasChanged();
+    }
+
+    private async Task UpdateData()
+    {
+        var reports = await GetReportsFromBackend();
+
+        if (reports is not null)
+        {
+            _reports = reports;
+        }
+        
+        StateHasChanged();
+    }
     
+    private async Task<ReportContract[]?> GetReportsFromBackend()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<IEnumerable<ReportContract>>($"Report/ListReports");
+            return response?.ToArray();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+            return null;
+        }
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_embedModule is not null)
+            await _embedModule.DisposeAsync();
+    }
 }

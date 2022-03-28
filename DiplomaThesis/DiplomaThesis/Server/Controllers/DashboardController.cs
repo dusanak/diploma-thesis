@@ -21,6 +21,7 @@ public class DashboardController : ControllerBase
         _service = service;
     }
     
+    //TODO add embed token
     [HttpGet("{dashboardId}")]
     public async Task<ActionResult> GetDashboard(
         [FromRoute] Guid dashboardId
@@ -36,6 +37,7 @@ public class DashboardController : ControllerBase
         return Ok(result);
     }
 
+    //TODO add embed token
     [HttpGet]
     public async Task<ActionResult> ListDashboards()
     {

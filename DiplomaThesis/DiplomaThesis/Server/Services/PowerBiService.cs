@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using DiplomaThesis.Server.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.PowerBI.Api;
@@ -33,7 +34,28 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
-    
+
+    public async Task<IEnumerable<Report>> GetReports()
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Reports.GetReportsInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId));
+
+        return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Report>();
+    }
+
+    public async Task<Report?> GetReport(Guid reportId)
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Reports.GetReportInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            reportId);
+
+        return response.Response.IsSuccessStatusCode ? response.Body : null;
+    }
+
     public async Task<IEnumerable<Dashboard>> GetDashboards()
     {
         var powerBiClient = GetPowerBiClient();
@@ -43,7 +65,54 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dashboard>();
     }
-    
+
+    public string GetEmbedTokenForReport(Guid reportId, Guid datasetId)
+    {
+        PowerBIClient pbiClient = GetPowerBiClient();
+
+        var tokenRequest = new GenerateTokenRequest(TokenAccessLevel.View, datasetId.ToString());
+
+        var response = pbiClient.Reports.GenerateToken(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            reportId,
+            tokenRequest);
+
+        return response.Token;
+    }
+
+    public async Task<EmbedToken> GetEmbedTokenForReports(IList<Guid> reportIds, IList<Guid> datasetIds,
+        [Optional] IList<Guid> targetWorkspaceIds)
+    {
+        PowerBIClient pbiClient = GetPowerBiClient();
+
+        // Convert report Ids to required types
+        var reports = reportIds.Select(reportId => new GenerateTokenRequestV2Report(reportId)).ToList();
+
+        // Convert dataset Ids to required types
+        var datasets = datasetIds.Select(datasetId => new GenerateTokenRequestV2Dataset(datasetId.ToString())).ToList();
+
+        // Convert target workspace Ids to required types
+        IList<GenerateTokenRequestV2TargetWorkspace> targetWorkspaces = null;
+        if (targetWorkspaceIds != null)
+        {
+            targetWorkspaces = targetWorkspaceIds
+                .Select(targetWorkspaceId => new GenerateTokenRequestV2TargetWorkspace(targetWorkspaceId)).ToList();
+        }
+
+        // Create a request for getting Embed token 
+        // This method works only with new Power BI V2 workspace experience
+        var tokenRequest = new GenerateTokenRequestV2(
+            datasets,
+            reports,
+            targetWorkspaceIds != null ? targetWorkspaces : null
+        );
+
+        // Generate Embed token
+        var embedToken = await pbiClient.EmbedToken.GenerateTokenAsync(tokenRequest);
+
+        return embedToken;
+    }
+
     public async Task<Dashboard?> CreateDashboard(string name)
     {
         var powerBiClient = GetPowerBiClient();
