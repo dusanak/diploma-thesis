@@ -1,0 +1,81 @@
+@using DiplomaThesis.Shared
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@implements IAsyncDisposable
+@inject IJSRuntime _js
+@inject HttpClient _http
+
+<div>
+    <em>@_report?.Name</em>
+    <div @ref="@_powerBiElement" style="height:800px"></div>
+</div>
+
+@code {
+    [Parameter]
+    string ReportId { get; set; }
+    
+    ReportContract? _report;
+    ElementReference _powerBiElement;
+    IJSObjectReference? _embedModule;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetReportFromBackend();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _embedModule = await _js.InvokeAsync<IJSObjectReference>("import", "./scripts/powerbi-embed.js");
+                await UpdateData();
+                
+                await _embedModule.InvokeVoidAsync("embedReport",
+                    _powerBiElement,
+                    _report.Id.ToString(),
+                    _report.EmbedUrl,
+                    _report.EmbedToken);
+                
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+    
+    private async Task UpdateData()
+    {
+        var report = await GetReportFromBackend();
+
+        if (report is not null)
+        {
+            _report = report;
+        }
+        
+        StateHasChanged();
+    }
+    
+    private async Task<ReportContract?> GetReportFromBackend()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ReportContract>($"Report/GetReport");
+            return response;
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+            return null;
+        }
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_embedModule is not null)
+            await _embedModule.DisposeAsync();
+    }
+}

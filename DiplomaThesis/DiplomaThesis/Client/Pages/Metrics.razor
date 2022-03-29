@@ -2,10 +2,12 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using DiplomaThesis.Shared
+
 @implements IAsyncDisposable
-@attribute [Authorize]
 @inject IJSRuntime _js
 @inject HttpClient _http
+
+@attribute [Authorize]
 
 <PageTitle>Metrics</PageTitle>
 
