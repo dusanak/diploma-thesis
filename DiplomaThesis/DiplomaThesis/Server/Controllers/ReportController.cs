@@ -45,10 +45,7 @@ public class ReportController : ControllerBase
     public async Task<ActionResult> ListReports()
     {
         var result = (await _service.GetReports()).ToList();
-
-        // var token = await _service.GetEmbedTokenForReports(
-        //     result.Select(report => report.Id).ToList(),
-        //     result.Select(report => Guid.Parse(report.DatasetId)).ToList());
+        
 
         var response = result.Select(
             report => new ReportContract
