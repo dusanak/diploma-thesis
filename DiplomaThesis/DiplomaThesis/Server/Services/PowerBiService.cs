@@ -24,17 +24,6 @@ public class PowerBiService
         return new PowerBIClient(new Uri(_powerBiOptions.Value.ApiRoot), tokenCredentials);
     }
 
-    public async Task<Dashboard?> GetDashboard(Guid dashboardId)
-    {
-        var powerBiClient = GetPowerBiClient();
-
-        var response = await powerBiClient.Dashboards.GetDashboardInGroupWithHttpMessagesAsync(
-            Guid.Parse(_powerBiOptions.Value.GroupId),
-            dashboardId);
-
-        return response.Response.IsSuccessStatusCode ? response.Body : null;
-    }
-
     public async Task<IEnumerable<Report>> GetReports()
     {
         var powerBiClient = GetPowerBiClient();
@@ -56,14 +45,32 @@ public class PowerBiService
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
 
-    public async Task<IEnumerable<Dashboard>> GetDashboards()
+    public async Task<Report?> CloneReport(Guid reportId, string newReportName)
     {
         var powerBiClient = GetPowerBiClient();
 
-        var response = await powerBiClient.Dashboards.GetDashboardsInGroupWithHttpMessagesAsync(
-            Guid.Parse(_powerBiOptions.Value.GroupId));
+        var cloneReportRequest = new CloneReportRequest(newReportName);
+        
+        var response = await powerBiClient.Reports.CloneReportInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            reportId,
+            cloneReportRequest);
 
-        return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dashboard>();
+        return response.Response.IsSuccessStatusCode ? response.Body : null;
+    }
+    
+    public async Task<bool> RebindReport(Guid reportId, Guid datasetId)
+    {
+        var powerBiClient = GetPowerBiClient();
+        
+        var rebindReportRequest = new RebindReportRequest(datasetId.ToString());
+        
+        var response = await powerBiClient.Reports.RebindReportInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            reportId,
+            rebindReportRequest);
+
+        return response.Response.IsSuccessStatusCode;
     }
 
     public string GetEmbedTokenForReport(Guid reportId, Guid datasetId)
@@ -79,40 +86,28 @@ public class PowerBiService
 
         return response.Token;
     }
-
-    public async Task<EmbedToken> GetEmbedTokenForReports(IList<Guid> reportIds, IList<Guid> datasetIds,
-        [Optional] IList<Guid> targetWorkspaceIds)
+    
+    public async Task<Dashboard?> GetDashboard(Guid dashboardId)
     {
-        PowerBIClient pbiClient = GetPowerBiClient();
+        var powerBiClient = GetPowerBiClient();
 
-        // Convert report Ids to required types
-        var reports = reportIds.Select(reportId => new GenerateTokenRequestV2Report(reportId)).ToList();
+        var response = await powerBiClient.Dashboards.GetDashboardInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            dashboardId);
 
-        // Convert dataset Ids to required types
-        var datasets = datasetIds.Select(datasetId => new GenerateTokenRequestV2Dataset(datasetId.ToString())).ToList();
-
-        // Convert target workspace Ids to required types
-        IList<GenerateTokenRequestV2TargetWorkspace> targetWorkspaces = null;
-        if (targetWorkspaceIds != null)
-        {
-            targetWorkspaces = targetWorkspaceIds
-                .Select(targetWorkspaceId => new GenerateTokenRequestV2TargetWorkspace(targetWorkspaceId)).ToList();
-        }
-
-        // Create a request for getting Embed token 
-        // This method works only with new Power BI V2 workspace experience
-        var tokenRequest = new GenerateTokenRequestV2(
-            datasets,
-            reports,
-            targetWorkspaceIds != null ? targetWorkspaces : null
-        );
-
-        // Generate Embed token
-        var embedToken = await pbiClient.EmbedToken.GenerateTokenAsync(tokenRequest);
-
-        return embedToken;
+        return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
 
+    public async Task<IEnumerable<Dashboard>> GetDashboards()
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Dashboards.GetDashboardsInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId));
+
+        return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dashboard>();
+    }
+    
     public async Task<Dashboard?> CreateDashboard(string name)
     {
         var powerBiClient = GetPowerBiClient();
@@ -147,13 +142,17 @@ public class PowerBiService
         return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dataset>();
     }
     
-    public async Task<Dataset?> CreateDataset(string datasetName)
+    public async Task<Dataset?> CreateDataset(string datasetName, IEnumerable<string> columnNames)
     {
         var powerBiClient = GetPowerBiClient();
 
         var createDatasetRequest = new CreateDatasetRequest(
             datasetName, 
-            new List<Table>{new Table()});
+            new List<Table> { new Table(
+                "Data", 
+                columnNames.Select(name => new Column(name, "Text")).ToList())
+            },
+            defaultMode: DatasetMode.Push);
         var response = await powerBiClient.Datasets.PostDatasetInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             createDatasetRequest
@@ -161,7 +160,8 @@ public class PowerBiService
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
     
-    public async Task PushRowsToDataset(Guid datasetId, List<object> rows, string tableName="Data")
+    //TODO rows or JSON
+    public async Task<bool> PushRowsToDataset(Guid datasetId, List<object> rows, string tableName="Data")
     {
         var powerBiClient = GetPowerBiClient();
 
@@ -171,5 +171,7 @@ public class PowerBiService
             tableName,
             new PostRowsRequest(rows)
         );
+
+        return response.Response.IsSuccessStatusCode;
     } 
 }
