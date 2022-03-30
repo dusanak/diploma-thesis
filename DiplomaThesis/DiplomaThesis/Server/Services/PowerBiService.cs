@@ -125,4 +125,51 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
+
+    public async Task<Dataset?> GetDataset(Guid datasetId)
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Datasets.GetDatasetInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            datasetId.ToString());
+
+        return response.Response.IsSuccessStatusCode ? response.Body : null;
+    }
+    
+    public async Task<IEnumerable<Dataset>> GetDatasets()
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Datasets.GetDatasetsInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId));
+
+        return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dataset>();
+    }
+    
+    public async Task<Dataset?> CreateDataset(string datasetName)
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var createDatasetRequest = new CreateDatasetRequest(
+            datasetName, 
+            new List<Table>{new Table()});
+        var response = await powerBiClient.Datasets.PostDatasetInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            createDatasetRequest
+        );
+        return response.Response.IsSuccessStatusCode ? response.Body : null;
+    }
+    
+    public async Task PushRowsToDataset(Guid datasetId, List<object> rows, string tableName="Data")
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Datasets.PostRowsInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            datasetId.ToString(),
+            tableName,
+            new PostRowsRequest(rows)
+        );
+    } 
 }
