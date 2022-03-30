@@ -25,12 +25,10 @@
     }
     else
     {
-         @foreach (var report in _reports)
-         {
-             <div>
-                    <ReportContainer Report="@report"/>
-             </div>
-         }
+        foreach (var report in _reports)
+        {
+            <ReportContainer Report="@report"/>
+        }
     }
 </div>
 

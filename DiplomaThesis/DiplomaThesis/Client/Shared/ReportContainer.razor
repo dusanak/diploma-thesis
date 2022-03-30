@@ -6,7 +6,6 @@
 @inject HttpClient _http
 
 <div>
-    <button @onclick="Reload">Reload</button>
     <em>Id: @Report?.Id Name: @Report?.Name</em>
     <div @ref="@_powerBiElement" style="height:800px"></div>
 </div>
@@ -15,14 +14,8 @@
     [Parameter]
     public ReportContract? Report { get; set; }
     
-    // ReportContract? _report;
     ElementReference _powerBiElement;
     IJSObjectReference? _embedModule;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // await UpdateData();
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -31,7 +24,6 @@
             if (firstRender)
             {
                 _embedModule = await _js.InvokeAsync<IJSObjectReference>("import", "./scripts/powerbi-embed.js");
-                await UpdateData();
 
                 if (Report is not null)
                 {
@@ -41,7 +33,7 @@
                         Report.EmbedUrl,
                         Report.EmbedToken);
                 }
-                
+
                 StateHasChanged();
             }
         }
@@ -50,47 +42,7 @@
             Console.WriteLine(e);
         }
     }
-    
-    private async Task UpdateData()
-    {
-        // if (ReportId is not null)
-        // {
-        //     var report = await GetReportFromBackend(Guid.Parse(ReportId));
-        //
-        //     if (report is not null)
-        //     {
-        //         _report = report;
-        //     }
-        //
-        //     StateHasChanged();
-        // }
-    }
-    
-    private async Task<ReportContract?> GetReportFromBackend(Guid reportId)
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<ReportContract>($"Report/GetReport/{reportId}");
-            return response;
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
-    }
-    
-    private async Task Reload()
-    {
-        // await UpdateData();
-        // await _embedModule.InvokeVoidAsync("embedReport",
-        //     _powerBiElement,
-        //     _report.Id.ToString(),
-        //     _report.EmbedUrl,
-        //     _report.EmbedToken);
-        StateHasChanged();
-    }
-    
+
     public async ValueTask DisposeAsync()
     {
         if (_embedModule is not null)
