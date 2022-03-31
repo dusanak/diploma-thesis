@@ -11,7 +11,7 @@ using UserGroup = DiplomaThesis.Server.Models.UserGroup;
 
 namespace DiplomaThesis.Server.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [ApiController]
     [Route("[controller]/[action]")]
     public class AdministrationController : ControllerBase
@@ -32,6 +32,7 @@ namespace DiplomaThesis.Server.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("{userId}")]
         public async Task<ActionResult> GetUser(
             [FromRoute] Guid userId
@@ -66,6 +67,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult> ListUsers()
         {
@@ -103,6 +105,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok(result.AsEnumerable());
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public ActionResult ListRoles()
         {
@@ -111,6 +114,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok(result.AsEnumerable());
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<ActionResult> AddRole(
             [FromBody] AddRoleCommand addRoleCommand)
@@ -130,6 +134,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok();
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<ActionResult> RemoveRole(
             [FromBody] RemoveRoleCommand removeRoleCommand)
@@ -148,6 +153,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok();
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpDelete]
         public async Task<ActionResult> DeleteUser(
             [FromBody] DeleteUserCommand deleteUserCommand)
@@ -179,6 +185,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok(result.AsEnumerable());
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public ActionResult CreateUserGroup(
             [FromBody] CreateUserGroupCommand createUserGroupCommand)
@@ -206,6 +213,7 @@ namespace DiplomaThesis.Server.Controllers
             });
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpDelete]
         public ActionResult DeleteUserGroup(
             [FromRoute] Guid userGroupId)
@@ -219,6 +227,7 @@ namespace DiplomaThesis.Server.Controllers
             return Ok();
         }
         
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public ActionResult MoveUserToUserGroup(
             [FromBody] MoveUserToUserGroupCommand moveUserToUserGroupCommand)

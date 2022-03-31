@@ -12,10 +12,10 @@
 
 <h1>Metrics</h1>
 
-<div class="d-flex flex-column">
+<div class="d-flex">
     @if (_reports is null || _reports.Length == 0)
     {
-        <div>
+        <div class="flex-column">
             <em>Ukázkový report</em>
             <iframe title="Ukázkový report"  
                     src="https://app.powerbi.com/view?r=eyJrIjoiNjlmMjA3OWQtZjgwOS00YmFmLThkNTMtNzY0YmM1N2YwZDg3IiwidCI6IjA2ZmZiNTU3LTRmMDYtNGQzOC1hNjM3LTRlNWRmZDc4N2RhMiIsImMiOjh9" 
@@ -25,14 +25,26 @@
     }
     else
     {
-        foreach (var report in _reports)
-        {
-            <ReportContainer Report="@report"/>
-        }
+        <div class="flex-column">
+            @foreach (var report in _reports)
+            {
+                <AuthorizeView Roles="Architect">
+                    <button class="btn btn-outline-primary"
+                            @onclick="() => SelectReport(report)">
+                        Select
+                    </button>
+                </AuthorizeView>
+                <ReportContainer Report="@report"/>
+            }
+        </div>
+        
+        <ReportMenu @ref="_reportMenu" OnReportChanged="UpdateData"/>
     }
 </div>
 
 @code {
+    ReportMenu _reportMenu = null!;
+    
     ReportContract[]? _reports;
 
     protected override async Task OnInitializedAsync()
@@ -65,5 +77,10 @@
             exception.Redirect();
             return null;
         }
+    }
+
+    private void SelectReport(ReportContract report)
+    {
+        _reportMenu.Report = report;
     }
 }

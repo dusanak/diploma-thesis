@@ -83,15 +83,15 @@
 </div>
 
 @code {
-
     [Parameter]
     public EventCallback OnUserChanged { get; set; }
 
     private UserContract? User { get; set; }
-
     private RoleContract[]? Roles { get; set; }
     private UserGroupContract[]? UserGroups { get; set; }
-
+    
+    public bool ShowUserMenu { get; set; }
+    
     private string _selectedUserGroupId = Guid.Empty.ToString();
     private string SelectedUserGroupId
     {
@@ -111,9 +111,7 @@
         var userGroups = await GetUserGroupsFromBackend();
         UserGroups = userGroups;
     }
-
-    public bool ShowUserMenu { get; set; }
-
+    
     public void ToggleUserMenu()
     {
         ShowUserMenu = !ShowUserMenu;

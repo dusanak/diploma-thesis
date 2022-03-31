@@ -1,0 +1,122 @@
+@using DiplomaThesis.Shared
+@using DiplomaThesis.Shared.Contracts
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient _http
+
+<div class="flex-column float-end"
+     style="display: @(ShowMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
+     
+@if (Report is null || UserGroups is null)
+{
+     <p>
+          <em>Loading...</em>
+     </p>
+}
+else
+{
+     <p><strong>Id:</strong>&nbsp;@Report.Id</p>
+     <p><strong>Name:</strong>&nbsp;@Report.Name</p>
+     <hr/>
+     <strong>User group:</strong>
+     <label>
+          <select id="user_groups" 
+                  name="user_groups" 
+                  value="@SelectedUserGroupId"
+                  @onchange="SelectedUserGroupChanged">
+               <option value="@Guid.Empty.ToString()">&lt;No group assigned&gt;</option>
+               @foreach (var userGroup in UserGroups)
+               {
+                    <option value="@userGroup.Id.ToString()">
+                         @userGroup.Name
+                    </option>
+               }
+          </select>
+     </label>
+     <hr/>
+}
+    <button
+        class="btn btn-outline-dark flex-fill"
+        style="width: 100%"
+        @onclick="ToggleMenu">
+        Hide
+    </button>
+</div>
+
+@code {
+     [Parameter]
+     public EventCallback OnReportChanged { get; set; }
+
+     private ReportContract? _report = null;
+     public ReportContract? Report
+     {
+          get => _report;
+          set
+          {
+               _report = value;
+               // SelectedUserGroupId = _reportContract.UserGroupId;
+               ShowMenu = true;
+               StateHasChanged();
+          }
+     }
+     
+     private string _selectedUserGroupId = Guid.Empty.ToString();
+     private string SelectedUserGroupId
+     {
+          get => _selectedUserGroupId;
+          set
+          {
+               _selectedUserGroupId = value;
+               StateHasChanged();
+          }
+     }
+     
+     private UserGroupContract[]? UserGroups { get; set; }
+     
+     public bool ShowMenu { get; set; }
+     
+     protected override async Task OnInitializedAsync()
+     {
+          var userGroups = await GetUserGroupsFromBackend();
+          UserGroups = userGroups;
+     }
+     
+     public void ToggleMenu()
+     {
+          ShowMenu = !ShowMenu;
+     }
+     
+     private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
+     {
+          try
+          {
+               var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
+               return response?.ToArray();
+          }
+          catch (AccessTokenNotAvailableException exception)
+          {
+               exception.Redirect();
+               return null;
+          }
+     }
+     
+     private async Task SelectedUserGroupChanged(ChangeEventArgs e)
+     {
+          var selectedUserGroupId = e.Value?.ToString();
+
+          if (selectedUserGroupId is null)
+          {
+               return;
+          }
+        
+          // Console.WriteLine("Current report guid is " + Report!.UserGroupId);
+          Console.WriteLine("Selected guid is " + selectedUserGroupId);
+
+          SelectedUserGroupId = selectedUserGroupId;
+        
+          // if (Report is not null && !Report.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
+          // {
+          //      await MoveUserToUserGroup();
+          // }
+     }
+}
