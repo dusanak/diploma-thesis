@@ -1,4 +1,5 @@
 @using DiplomaThesis.Shared
+@using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Shared.Contracts
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
@@ -34,6 +35,18 @@ else
           </select>
      </label>
      <hr/>
+     <div class="flex-row">
+          <label>
+               <input placeholder="New report name"
+                      @bind="_newReportName"
+                      @bind:event="oninput"/>
+          </label>
+          <button class="btn btn-outline-dark"
+                  @onclick="CloneReport">
+               Clone
+          </button>
+     </div>
+     <hr/>
 }
     <button
         class="btn btn-outline-dark flex-fill"
@@ -54,7 +67,7 @@ else
           set
           {
                _report = value;
-               // SelectedUserGroupId = _reportContract.UserGroupId;
+               SelectedUserGroupId = (value?.UserGroupId ?? Guid.Empty).ToString();
                ShowMenu = true;
                StateHasChanged();
           }
@@ -74,6 +87,8 @@ else
      private UserGroupContract[]? UserGroups { get; set; }
      
      public bool ShowMenu { get; set; }
+     
+     private string _newReportName = "";
      
      protected override async Task OnInitializedAsync()
      {
@@ -109,14 +124,59 @@ else
                return;
           }
         
-          // Console.WriteLine("Current report guid is " + Report!.UserGroupId);
+          Console.WriteLine("Current report guid is " + Report!.UserGroupId);
           Console.WriteLine("Selected guid is " + selectedUserGroupId);
 
           SelectedUserGroupId = selectedUserGroupId;
         
-          // if (Report is not null && !Report.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
-          // {
-          //      await MoveUserToUserGroup();
-          // }
+          if (Report is not null && !Report.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
+          {
+               await MoveReportToUserGroup();
+          }
+     }
+     
+     private async Task MoveReportToUserGroup()
+     {
+          try
+          {
+               var response = await _http.PutAsJsonAsync(
+                    $"Report/MoveReportToUserGroup",
+                    new MoveReportToUserGroupCommand { ReportId = Report!.Id, UserGroupId = Guid.Parse(SelectedUserGroupId) }
+                    );
+               if (response.IsSuccessStatusCode)
+               {
+                    await OnReportChanged.InvokeAsync();
+                    StateHasChanged();
+               }
+          }
+          catch (AccessTokenNotAvailableException exception)
+          {
+               exception.Redirect();
+          }
+     }
+     
+     private async Task CloneReport()
+     {
+          if (_newReportName.Length == 0)
+          {
+               return;
+          }
+          
+          try
+          {
+               var response = await _http.PostAsJsonAsync(
+                    $"Report/CloneReport",
+                    new CloneReportCommand { ReportId = Report!.Id, NewName = _newReportName }
+                    );
+               if (response.IsSuccessStatusCode)
+               {
+                    await OnReportChanged.InvokeAsync();
+                    StateHasChanged();
+               }
+          }
+          catch (AccessTokenNotAvailableException exception)
+          {
+               exception.Redirect();
+          }
      }
 }

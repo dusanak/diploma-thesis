@@ -16,6 +16,7 @@ namespace DiplomaThesis.Server.Data
         }
 
         public DbSet<UserGroup> UserGroups { get; set; } = null!;
+        public DbSet<ReportDb> Reports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
