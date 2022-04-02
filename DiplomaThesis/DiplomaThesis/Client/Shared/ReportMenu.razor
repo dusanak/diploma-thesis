@@ -8,7 +8,7 @@
 <div class="flex-column float-end"
      style="display: @(ShowMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
      
-@if (Report is null || UserGroups is null)
+@if (Report is null || UserGroups is null || Datasets is null)
 {
      <p>
           <em>Loading...</em>
@@ -30,6 +30,22 @@ else
                {
                     <option value="@userGroup.Id.ToString()">
                          @userGroup.Name
+                    </option>
+               }
+          </select>
+     </label>
+     <hr/>
+     <strong>Dataset:</strong>
+     <label>
+          <select id="data_sets" 
+                  name="data_sets" 
+                  value="@SelectedDatasetId"
+                  @onchange="SelectedDatasetChanged">
+               <option value="@Guid.Empty.ToString()">&lt;No group assigned&gt;</option>
+               @foreach (var dataset in Datasets)
+               {
+                    <option value="@dataset.Id.ToString()">
+                         @dataset.Name
                     </option>
                }
           </select>
@@ -68,6 +84,7 @@ else
           {
                _report = value;
                SelectedUserGroupId = (value?.UserGroupId ?? Guid.Empty).ToString();
+               SelectedDatasetId = (value?.DatasetId ?? Guid.Empty).ToString();
                ShowMenu = true;
                StateHasChanged();
           }
@@ -84,7 +101,19 @@ else
           }
      }
      
+     private string _selectedDatasetId = Guid.Empty.ToString();
+     private string SelectedDatasetId
+     {
+          get => _selectedDatasetId;
+          set
+          {
+               _selectedDatasetId = value;
+               StateHasChanged();
+          }
+     }
+     
      private UserGroupContract[]? UserGroups { get; set; }
+     private DatasetContract[]? Datasets { get; set; }
      
      public bool ShowMenu { get; set; }
      
@@ -92,13 +121,73 @@ else
      
      protected override async Task OnInitializedAsync()
      {
-          var userGroups = await GetUserGroupsFromBackend();
-          UserGroups = userGroups;
+          await UpdateData();
      }
      
      public void ToggleMenu()
      {
           ShowMenu = !ShowMenu;
+     }
+
+     private async Task UpdateData()
+     {
+          var userGroups = await GetUserGroupsFromBackend();
+          UserGroups = userGroups;
+          
+          var datasets = await GetDatasetsFromBackend();
+          Datasets = datasets;
+     }
+     
+     private async Task<DatasetContract[]?> GetDatasetsFromBackend()
+     {
+          try
+          {
+               var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>($"Dataset/ListDatasets");
+               return response?.ToArray();
+          }
+          catch (AccessTokenNotAvailableException exception)
+          {
+               exception.Redirect();
+               return null;
+          }
+     }
+     
+     private async Task SelectedDatasetChanged(ChangeEventArgs e)
+     {
+          var selectedDatasetId = e.Value?.ToString();
+
+          if (selectedDatasetId is null)
+          {
+               return;
+          }
+
+          SelectedDatasetId = selectedDatasetId;
+        
+          if (Report is not null && !Report.DatasetId.Equals(Guid.Parse(SelectedDatasetId)))
+          {
+               await RebindReportToDataset();
+          }
+     }
+     
+     private async Task RebindReportToDataset()
+     {
+          try
+          {
+               var response = await _http.PutAsJsonAsync(
+                    $"Report/RebindReportToDataset",
+                    new RebindReportCommand { ReportId = Report!.Id, DatasetId = Guid.Parse(SelectedDatasetId) }
+                    );
+               if (response.IsSuccessStatusCode)
+               {
+                    await OnReportChanged.InvokeAsync();
+                    ToggleMenu();
+                    StateHasChanged();
+               }
+          }
+          catch (AccessTokenNotAvailableException exception)
+          {
+               exception.Redirect();
+          }
      }
      
      private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
@@ -123,9 +212,6 @@ else
           {
                return;
           }
-        
-          Console.WriteLine("Current report guid is " + Report!.UserGroupId);
-          Console.WriteLine("Selected guid is " + selectedUserGroupId);
 
           SelectedUserGroupId = selectedUserGroupId;
         
@@ -146,6 +232,7 @@ else
                if (response.IsSuccessStatusCode)
                {
                     await OnReportChanged.InvokeAsync();
+                    ToggleMenu();
                     StateHasChanged();
                }
           }

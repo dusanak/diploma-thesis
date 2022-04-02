@@ -4,6 +4,7 @@ using DiplomaThesis.Server.Models;
 using DiplomaThesis.Server.Services;
 using DiplomaThesis.Shared;
 using DiplomaThesis.Shared.Commands;
+using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -61,7 +62,8 @@ public class ReportController : ControllerBase
             Name = result.Name,
             EmbedUrl = result.EmbedUrl,
             EmbedToken = _service.GetEmbedTokenForReport(result.Id, Guid.Parse(result.DatasetId)),
-            UserGroupId = reportInDb.UserGroupId ?? Guid.Empty
+            UserGroupId = reportInDb.UserGroupId ?? Guid.Empty,
+            DatasetId = Guid.Parse(result.DatasetId)
         });
     }
 
@@ -102,7 +104,8 @@ public class ReportController : ControllerBase
                     Name = report.Name,
                     EmbedUrl = report.EmbedUrl,
                     EmbedToken = _service.GetEmbedTokenForReport(report.Id, Guid.Parse(report.DatasetId)),
-                    UserGroupId = reportInDb.UserGroupId ?? Guid.Empty
+                    UserGroupId = reportInDb.UserGroupId ?? Guid.Empty,
+                    DatasetId = Guid.Parse(report.DatasetId)
                 });
             }
         }
@@ -150,7 +153,8 @@ public class ReportController : ControllerBase
             Name = report.Name,
             EmbedUrl = report.EmbedUrl,
             EmbedToken = _service.GetEmbedTokenForReport(report.Id, Guid.Parse(report.DatasetId)),
-            UserGroupId = Guid.Empty
+            UserGroupId = Guid.Empty,
+            DatasetId = Guid.Parse(report.DatasetId)
         };
 
         return Ok(response);
@@ -192,6 +196,36 @@ public class ReportController : ControllerBase
     
         _context.SaveChanges();
             
+        return Ok();
+    }
+    
+    [Authorize(Roles = "Architect")]
+    [HttpPut]
+    public async Task<ActionResult> RebindReportToDataset(
+        [FromBody] RebindReportCommand rebindReportCommand
+    )
+    {
+        var report = await _service.GetReport(rebindReportCommand.ReportId);
+        if (report is null) return NotFound();
+    
+        if (rebindReportCommand.DatasetId.ToString().Equals(report.DatasetId))
+        {
+            return Ok();
+        }
+
+        var dataset = await _service.GetDataset(rebindReportCommand.DatasetId);
+        if (dataset is null)
+        {
+            return NotFound();
+        }
+
+        var result = await _service.RebindReport(rebindReportCommand.ReportId, rebindReportCommand.DatasetId);
+
+        if (!result)
+        {
+            return BadRequest();
+        }
+        
         return Ok();
     }
     

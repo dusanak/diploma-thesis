@@ -134,9 +134,6 @@
             return;
         }
         
-        Console.WriteLine("Current user guid is " + User!.UserGroupId);
-        Console.WriteLine("Selected guid is " + selectedUserGroupId);
-
         SelectedUserGroupId = selectedUserGroupId;
         
         if (User is not null && !User.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))

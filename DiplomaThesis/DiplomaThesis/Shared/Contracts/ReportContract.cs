@@ -1,4 +1,4 @@
-namespace DiplomaThesis.Shared;
+namespace DiplomaThesis.Shared.Contracts;
 
 public class ReportContract
 {
@@ -7,4 +7,5 @@ public class ReportContract
     public string EmbedUrl { get; init; } = null!;
     public string EmbedToken { get; init; } = null!;
     public Guid UserGroupId { get; init; }
+    public Guid DatasetId { get; init; }
 }

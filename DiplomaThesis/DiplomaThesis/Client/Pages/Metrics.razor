@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using DiplomaThesis.Shared
+@using DiplomaThesis.Shared.Contracts
 
 @inject IJSRuntime _js
 @inject HttpClient _http
@@ -15,13 +16,9 @@
 <div class="d-flex">
     @if (_reports is null || _reports.Length == 0)
     {
-        <div class="flex-column">
-            <em>Ukázkový report</em>
-            <iframe title="Ukázkový report"  
-                    src="https://app.powerbi.com/view?r=eyJrIjoiNjlmMjA3OWQtZjgwOS00YmFmLThkNTMtNzY0YmM1N2YwZDg3IiwidCI6IjA2ZmZiNTU3LTRmMDYtNGQzOC1hNjM3LTRlNWRmZDc4N2RhMiIsImMiOjh9" 
-                    style="border: 0;"
-                    width="600" height="373.5" allow="fullscreen"></iframe>
-        </div>
+        <p>
+            <em>Loading...</em>
+        </p>
     }
     else
     {
