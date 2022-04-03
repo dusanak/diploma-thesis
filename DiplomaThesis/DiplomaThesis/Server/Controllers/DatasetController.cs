@@ -1,5 +1,7 @@
+using System.Text.Json;
 using DiplomaThesis.Server.Data;
 using DiplomaThesis.Server.Services;
+using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +13,10 @@ namespace DiplomaThesis.Server.Controllers;
 [Route("[controller]/[action]")]
 public class DatasetController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
     private readonly PowerBiService _service;
 
-    public DatasetController(ApplicationDbContext context, PowerBiService service)
+    public DatasetController(PowerBiService service)
     {
-        _context = context;
         _service = service;
     }
 
@@ -41,11 +41,10 @@ public class DatasetController : ControllerBase
 
     [Authorize(Roles = "Architect")]
     [HttpGet]
-    public async Task<ActionResult> ListDatasets(
-        [FromRoute] Guid datasetId
-    )
+    public async Task<ActionResult> ListDatasets()
     {
         var result = await _service.GetDatasets();
+        
 
         return Ok(result.Select(dataset =>
             new DatasetContract
@@ -53,5 +52,67 @@ public class DatasetController : ControllerBase
                 Id = Guid.Parse(dataset.Id),
                 Name = dataset.Name
             }).ToList());
+    }
+    
+    [Authorize(Roles = "Architect")]
+    [HttpPost]
+    public async Task<ActionResult> CreateDataset(
+        [FromBody] CreateDatasetCommand createDatasetCommand
+    )
+    {
+        if (createDatasetCommand.Name.Length == 0 || !createDatasetCommand.Columns.Any())
+        {
+            return BadRequest();
+        }
+        
+        var result = await _service.CreateDataset(createDatasetCommand.Name, createDatasetCommand.Columns);
+
+        if (result is null)
+        {
+            return StatusCode(500);
+        }
+        
+        return Ok(result);
+    }
+    
+    [Authorize(Roles = "Architect")]
+    [HttpPost("{datasetName}")]
+    public async Task<ActionResult> UploadNewDataset(
+        [FromRoute] string datasetName,
+        [FromBody] List<object> rows
+    )
+    {
+        if (datasetName.Length == 0 || rows.Count == 0)
+        {
+            return BadRequest();
+        }
+
+        var columnNames = ((JsonElement)rows[0]).EnumerateObject().Select(property => property.Name).ToList();
+
+        var dataset = await _service.CreateDataset(datasetName, columnNames);
+        if (dataset is null)
+        {
+            return StatusCode(500);
+        }
+
+        var result = await _service.PushRowsToDataset(Guid.Parse(dataset.Id), rows);
+        return result ? Ok() : StatusCode(500);
+    }
+    
+    [Authorize(Roles = "Architect")]
+    [HttpPost("{datasetId}")]
+    public async Task<ActionResult> UploadRowsToDataset(
+        [FromRoute] Guid datasetId,
+        [FromBody] List<object> rows
+    )
+    {
+        var dataset = await _service.GetDataset(datasetId);
+        if (dataset is null)
+        {
+            return NotFound();
+        }
+
+        var result = await _service.PushRowsToDataset(datasetId, rows);
+        return result ? Ok() : StatusCode(500);
     }
 }

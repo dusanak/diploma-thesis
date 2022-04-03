@@ -180,7 +180,7 @@ else
 
         try
         {
-            var response = await _http.PostAsJsonAsync<CreateUserGroupCommand>(
+            var response = await _http.PostAsJsonAsync(
                 $"Administration/CreateUserGroup",
                 new CreateUserGroupCommand { Name = _newUserGroupName }
                 );
@@ -194,6 +194,5 @@ else
             exception.Redirect();
         }
     }
-
 }
 

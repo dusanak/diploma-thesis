@@ -146,25 +146,26 @@ public class PowerBiService
     {
         var powerBiClient = GetPowerBiClient();
 
+        var columns = columnNames.Select(name => new Column(name, "string")).ToList();
+        var table = new Table("Data", columns);
+
         var createDatasetRequest = new CreateDatasetRequest(
-            datasetName, 
-            new List<Table> { new Table(
-                "Data", 
-                columnNames.Select(name => new Column(name, "Text")).ToList())
-            },
+            datasetName,
+            new List<Table> { table },
             defaultMode: DatasetMode.Push);
+        
         var response = await powerBiClient.Datasets.PostDatasetInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             createDatasetRequest
         );
+        
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
     
-    //TODO rows or JSON
     public async Task<bool> PushRowsToDataset(Guid datasetId, List<object> rows, string tableName="Data")
     {
         var powerBiClient = GetPowerBiClient();
-
+        
         var response = await powerBiClient.Datasets.PostRowsInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             datasetId.ToString(),

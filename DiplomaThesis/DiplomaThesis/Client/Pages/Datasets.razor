@@ -1,11 +1,177 @@
 @page "/data-sources"
 @using Microsoft.AspNetCore.Authorization
+@using DiplomaThesis.Shared.Contracts
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Text
+@using DiplomaThesis.Shared.Commands
 @attribute [Authorize(Roles = "Admin, Architect")]
+
+@inject HttpClient _http
 
 <PageTitle>Datasets</PageTitle>
 
 <h1>Datasets</h1>
 
+<div class="flex-column">
+    @if (DatasetArray is null)
+    {
+         <p>
+              <em>Loading...</em>
+         </p>
+    }
+    else
+    {
+        foreach (var dataset in DatasetArray)
+        {
+            <div>
+                <strong>Id:</strong>&nbsp;@dataset.Id<br/>
+                <strong>Name:</strong>&nbsp;@dataset.Name<br/>
+                <InputFile OnChange="@(args => LoadFile(args, dataset.Id))" />
+            </div>
+            <hr/>
+        }
+        <div>
+            <strong>Create new dataset from JSON</strong><br/>
+            <InputFile OnChange="@(args => LoadFile(args, Guid.Empty))"/>
+        </div>
+        <div>
+            <strong>Create new empty dataset</strong><br/>
+            <div class="flex-row">
+                <label>
+                    <input placeholder="New dataset name"
+                           @bind="_newDatasetName"
+                           @bind:event="oninput"/>
+                </label>
+                <label>
+                    <input placeholder="Dataset column names"
+                           @bind="_newDatasetColumns"
+                           @bind:event="oninput"/>
+                </label>
+                <button class="btn btn-outline-dark"
+                        @onclick="CreateDatasetButton">
+                    Create
+                </button>
+            </div>
+        </div>
+        <hr/>
+    }
+</div>
+
 @code {
+    DatasetContract[]? DatasetArray { get; set; }
+
+    string _newDatasetName = "";
+    string _newDatasetColumns = "";
     
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateData();
+    }
+    
+    private async Task UpdateData()
+    {
+
+        var datasets = await GetDatasetsFromBackend();
+        DatasetArray = datasets;
+        
+        StateHasChanged();
+    }
+    
+    private async Task<DatasetContract[]?> GetDatasetsFromBackend()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>($"Dataset/ListDatasets");
+            return response?.ToArray();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+            return null;
+        }
+    }
+    
+    private async Task LoadFile(InputFileChangeEventArgs e, Guid datasetId)
+    {
+        var file = e.File;
+        var datasetJson = await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
+
+        if (datasetId.Equals(Guid.Empty))
+        {
+            await UploadNewDataset(e.File.Name.Split(".")[0], datasetJson);
+        }
+        else
+        {
+            await UploadRowsToDataset(datasetId, datasetJson);
+        }
+    }
+    
+    private async Task UploadNewDataset(string datasetName, string datasetJson)
+    {
+        try
+        {
+            var content = new StringContent(datasetJson, Encoding.UTF8, "application/json");
+            var response = await _http.PostAsync($"Dataset/UploadNewDataset/{datasetName}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                _ = UpdateData();
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    
+    private async Task UploadRowsToDataset(Guid datasetId, string datasetJson)
+    {
+        try
+        {
+            var content = new StringContent(datasetJson, Encoding.UTF8, "application/json");
+            var response = await _http.PostAsync($"Dataset/UploadRowsToDataset/{datasetId}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                _ = UpdateData();
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task CreateDatasetButton()
+    {
+        await CreateDataset();
+    }
+    
+    private async Task CreateDataset(string datasetName = "", string[]? columns = null)
+    {
+        if (datasetName.Length == 0)
+        {
+            datasetName = _newDatasetName;
+        }
+
+        columns ??= _newDatasetColumns.Split(',');
+
+        try
+        {
+            var response = await _http.PostAsJsonAsync(
+                $"Dataset/CreateDataset",
+                new CreateDatasetCommand
+                {
+                    Name = datasetName,
+                    Columns = columns.AsEnumerable()
+                }
+                );
+            if (response.IsSuccessStatusCode)
+            {
+                _ = UpdateData();
+            }
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
 }
