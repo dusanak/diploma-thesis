@@ -3,6 +3,7 @@ using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Options;
 
 namespace DiplomaThesis.Server.Data
@@ -17,10 +18,18 @@ namespace DiplomaThesis.Server.Data
 
         public DbSet<UserGroup> UserGroups { get; set; } = null!;
         public DbSet<ReportDb> Reports { get; set; } = null!;
+        public DbSet<DatasetDb> Datasets { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            
+            var splitStringConverter = new ValueConverter<IEnumerable<string>, string>(
+                v => string.Join(";", v), 
+                v => v.Split(new[] { ';' })
+                );
+            builder.Entity<DatasetDb>().Property(nameof(DatasetDb.ColumnNames)).HasConversion(splitStringConverter);
+            builder.Entity<DatasetDb>().Property(nameof(DatasetDb.ColumnTypes)).HasConversion(splitStringConverter);
 
             builder.Entity<IdentityRole>().HasData(new IdentityRole
             {

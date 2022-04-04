@@ -1,10 +1,12 @@
 using System.Text.Json;
 using DiplomaThesis.Server.Data;
+using DiplomaThesis.Server.Models;
 using DiplomaThesis.Server.Services;
 using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.PowerBI.Api.Models;
 using Newtonsoft.Json.Linq;
 
@@ -15,11 +17,13 @@ namespace DiplomaThesis.Server.Controllers;
 [Route("[controller]/[action]")]
 public class DatasetController : ControllerBase
 {
+    private readonly ApplicationDbContext _context;
     private readonly PowerBiService _service;
 
-    public DatasetController(PowerBiService service)
+    public DatasetController(PowerBiService service, ApplicationDbContext context)
     {
         _service = service;
+        _context = context;
     }
 
     [Authorize(Roles = "Architect")]
@@ -28,16 +32,21 @@ public class DatasetController : ControllerBase
         [FromRoute] Guid datasetId
     )
     {
-        var result = await _service.GetDataset(datasetId);
-        if (result is null)
+        var datasetInPowerBi = await _service.GetDataset(datasetId);
+        if (datasetInPowerBi is null)
         {
             return NotFound();
         }
+        
+        var datasetsInDb = await _context.Datasets.ToListAsync();
+        var datasetInDb = datasetsInDb.Find(datasetDb => datasetDb.PowerBiId.Equals(Guid.Parse(datasetInPowerBi.Id)));
 
         return Ok(new DatasetContract
         {
-            Id = Guid.Parse(result.Id),
-            Name = result.Name
+            Id = Guid.Parse(datasetInPowerBi.Id),
+            Name = datasetInPowerBi.Name,
+            ColumnNames = datasetInDb?.ColumnNames ?? new List<string>(),
+            ColumnTypes = datasetInDb?.ColumnTypes ?? new List<string>()
         });
     }
 
@@ -45,15 +54,25 @@ public class DatasetController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> ListDatasets()
     {
-        var result = await _service.GetDatasets();
-        
+        var datasetsInPowerBi = await _service.GetDatasets();
+        var datasetsInDb = await _context.Datasets.ToListAsync();
 
-        return Ok(result.Select(dataset =>
-            new DatasetContract
+        var result = new List<DatasetContract>();
+
+        foreach (var dataset in datasetsInPowerBi)
+        {
+            var datasetInDb = datasetsInDb.Find(datasetDb => datasetDb.PowerBiId.Equals(Guid.Parse(dataset.Id)));
+            
+            result.Add(new DatasetContract
             {
                 Id = Guid.Parse(dataset.Id),
-                Name = dataset.Name
-            }).ToList());
+                Name = dataset.Name,
+                ColumnNames = datasetInDb?.ColumnNames ?? new List<string>(),
+                ColumnTypes = datasetInDb?.ColumnTypes ?? new List<string>()
+            });
+        }
+
+        return Ok(result);
     }
     
     [Authorize(Roles = "Architect")]
@@ -115,6 +134,17 @@ public class DatasetController : ControllerBase
             return StatusCode(500);
         }
 
+        var datasetInDb = new DatasetDb
+        {
+            Id = Guid.NewGuid(),
+            PowerBiId = Guid.Parse(dataset.Id),
+            ColumnNames = columns.Select(column => column.Name),
+            ColumnTypes = columns.Select(column => column.DataType)
+        };
+
+        _context.Datasets.Add(datasetInDb);
+        await _context.SaveChangesAsync();
+        
         var result = await _service.PushRowsToDataset(Guid.Parse(dataset.Id), rows);
         return result ? Ok() : StatusCode(500);
     }
