@@ -5,6 +5,8 @@ using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.PowerBI.Api.Models;
+using Newtonsoft.Json.Linq;
 
 namespace DiplomaThesis.Server.Controllers;
 
@@ -65,7 +67,10 @@ public class DatasetController : ControllerBase
             return BadRequest();
         }
         
-        var result = await _service.CreateDataset(createDatasetCommand.Name, createDatasetCommand.Columns);
+        var result = await _service.CreateDataset(
+            createDatasetCommand.Name, 
+            createDatasetCommand.Columns.Select(name => new Column(name, "string"))
+            );
 
         if (result is null)
         {
@@ -87,9 +92,24 @@ public class DatasetController : ControllerBase
             return BadRequest();
         }
 
-        var columnNames = ((JsonElement)rows[0]).EnumerateObject().Select(property => property.Name).ToList();
-
-        var dataset = await _service.CreateDataset(datasetName, columnNames);
+        var columns = new List<Column>();
+        foreach (var element in ((JObject)rows[0]).Properties())
+        {
+            if (DateTime.TryParse(element.Value.ToString(), out _))
+            {
+                columns.Add(new Column(element.Name, "datetime"));
+            } 
+            else if (long.TryParse(element.Value.ToString(), out _))
+            {
+                columns.Add(new Column(element.Name, "int64"));
+            }
+            else
+            {
+                columns.Add(new Column(element.Name, "string"));
+            }
+        }
+        
+        var dataset = await _service.CreateDataset(datasetName, columns);
         if (dataset is null)
         {
             return StatusCode(500);

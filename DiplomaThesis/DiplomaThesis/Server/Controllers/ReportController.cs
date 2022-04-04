@@ -6,6 +6,7 @@ using DiplomaThesis.Shared;
 using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,10 +20,13 @@ public class ReportController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly PowerBiService _service;
     
-    public ReportController(ApplicationDbContext context, PowerBiService service)
+    private readonly UserManager<ApplicationUser> _userManager;
+    
+    public ReportController(ApplicationDbContext context, PowerBiService service, UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _service = service;
+        _userManager = userManager;
     }
     
     [Authorize(Roles = "Architect")]
@@ -77,6 +81,8 @@ public class ReportController : ControllerBase
         var loggedInUser = await _context.Users.FindAsync(loggedInUserId);
         var loggedInUsersGroupId = loggedInUser!.UserGroupId ?? Guid.Empty;
 
+        var roles = await _userManager.GetRolesAsync(loggedInUser);
+        
         var response = new List<ReportContract>();
         foreach (var report in result)
         {
@@ -96,7 +102,18 @@ public class ReportController : ControllerBase
                 reportInDb = newReportDb;
             }
 
-            if (reportInDb.UserGroupId?.Equals(loggedInUsersGroupId) ?? true)
+            if (roles.Contains("Architect"))
+            {
+                response.Add(new ReportContract
+                {
+                    Id = report.Id,
+                    Name = report.Name,
+                    EmbedUrl = report.EmbedUrl,
+                    EmbedToken = _service.GetEmbedTokenForReport(report.Id, Guid.Parse(report.DatasetId), true),
+                    UserGroupId = reportInDb.UserGroupId ?? Guid.Empty,
+                    DatasetId = Guid.Parse(report.DatasetId)
+                });
+            } else if (reportInDb.UserGroupId?.Equals(loggedInUsersGroupId) ?? true)
             {
                 response.Add(new ReportContract
                 {

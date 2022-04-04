@@ -1,6 +1,4 @@
-@using DiplomaThesis.Shared
 @using DiplomaThesis.Shared.Contracts
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 @implements IAsyncDisposable
 @inject IJSRuntime _js
@@ -8,7 +6,7 @@
 
 <div>
     <em>Id: @Report?.Id Name: @Report?.Name</em>
-    <div @ref="@_powerBiElement" style="height:400px"></div>
+    <div @ref="@_powerBiElement" style="height:800px; width:800px"></div>
 </div>
 
 @code {

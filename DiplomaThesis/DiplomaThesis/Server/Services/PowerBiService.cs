@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using DiplomaThesis.Server.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.PowerBI.Api;
@@ -73,11 +72,14 @@ public class PowerBiService
         return response.Response.IsSuccessStatusCode;
     }
 
-    public string GetEmbedTokenForReport(Guid reportId, Guid datasetId)
+    public string GetEmbedTokenForReport(Guid reportId, Guid datasetId, bool canEdit = false)
     {
         PowerBIClient pbiClient = GetPowerBiClient();
 
-        var tokenRequest = new GenerateTokenRequest(TokenAccessLevel.View, datasetId.ToString());
+        var tokenRequest = new GenerateTokenRequest(
+            canEdit ? TokenAccessLevel.Edit : TokenAccessLevel.View,
+            datasetId.ToString()
+            );
 
         var response = pbiClient.Reports.GenerateToken(
             Guid.Parse(_powerBiOptions.Value.GroupId),
@@ -142,12 +144,11 @@ public class PowerBiService
         return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dataset>();
     }
     
-    public async Task<Dataset?> CreateDataset(string datasetName, IEnumerable<string> columnNames)
+    public async Task<Dataset?> CreateDataset(string datasetName, IEnumerable<Column> columns)
     {
         var powerBiClient = GetPowerBiClient();
-
-        var columns = columnNames.Select(name => new Column(name, "string")).ToList();
-        var table = new Table("Data", columns);
+        
+        var table = new Table("Data", columns.ToList());
 
         var createDatasetRequest = new CreateDatasetRequest(
             datasetName,
@@ -165,7 +166,7 @@ public class PowerBiService
     public async Task<bool> PushRowsToDataset(Guid datasetId, List<object> rows, string tableName="Data")
     {
         var powerBiClient = GetPowerBiClient();
-        
+
         var response = await powerBiClient.Datasets.PostRowsInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             datasetId.ToString(),
