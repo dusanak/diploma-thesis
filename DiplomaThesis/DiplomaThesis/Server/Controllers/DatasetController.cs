@@ -165,4 +165,26 @@ public class DatasetController : ControllerBase
         var result = await _service.PushRowsToDataset(datasetId, rows);
         return result ? Ok() : StatusCode(500);
     }
+    
+    [Authorize(Roles = "Architect")]
+    [HttpDelete]
+    public async Task<ActionResult> DeleteDataset(
+        [FromRoute] Guid datasetId
+    )
+    {
+        var dataset = await _service.GetDataset(datasetId);
+        if (dataset is null)
+        {
+            return Ok();
+        }
+        
+        var result = await _service.DeleteDataset(datasetId);
+
+        if (!result)
+        {
+            return StatusCode(500);
+        }
+        
+        return Ok(result);
+    }
 }

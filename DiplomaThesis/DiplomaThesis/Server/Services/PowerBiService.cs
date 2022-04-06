@@ -175,5 +175,17 @@ public class PowerBiService
         );
 
         return response.Response.IsSuccessStatusCode;
-    } 
+    }
+
+    public async Task<bool> DeleteDataset(Guid datasetId)
+    {
+        var powerBiClient = GetPowerBiClient();
+
+        var response = await powerBiClient.Datasets.DeleteDatasetInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            datasetId.ToString()
+            );
+
+        return response.Response.IsSuccessStatusCode;
+    }
 }

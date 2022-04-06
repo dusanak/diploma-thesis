@@ -3,9 +3,11 @@
 @using DiplomaThesis.Shared.Contracts
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Text
+@using DiplomaThesis.Client.Services.Interfaces
 @attribute [Authorize(Roles = "Admin, Architect")]
 
 @inject HttpClient _http
+@inject IFileParsingService _parser
 
 <PageTitle>Datasets</PageTitle>
 
@@ -56,7 +58,7 @@
             <hr/>
         }
         <div>
-            <strong>Create new dataset from JSON</strong><br/>
+            <strong>Create new dataset from JSON or CSV</strong><br/>
             <InputFile OnChange="@(args => LoadFile(args, Guid.Empty))"/>
         </div>
         <hr/>
@@ -96,7 +98,20 @@
     private async Task LoadFile(InputFileChangeEventArgs e, Guid datasetId)
     {
         var file = e.File;
-        var datasetJson = await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
+        var datasetFileContent = await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
+        string datasetJson;
+
+        try
+        {
+            datasetJson = _parser.ParseToJson(datasetFileContent, e.File.Name.Split(".").Last());
+            Console.WriteLine(datasetJson);
+        }
+        catch
+        {
+            Console.WriteLine("Exception");
+            return;
+        }
+        
 
         if (datasetId.Equals(Guid.Empty))
         {
