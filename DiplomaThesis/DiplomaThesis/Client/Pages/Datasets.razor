@@ -1,12 +1,10 @@
 @page "/data-sources"
 @using Microsoft.AspNetCore.Authorization
 @using DiplomaThesis.Shared.Contracts
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using System.Text
 @using DiplomaThesis.Client.Services.Interfaces
 @attribute [Authorize(Roles = "Admin, Architect")]
 
-@inject HttpClient _http
+@inject IDatasetService _datasetService
 @inject IFileParsingService _parser
 
 <PageTitle>Datasets</PageTitle>
@@ -75,26 +73,12 @@
 
     private async Task UpdateData()
     {
-        var datasets = await GetDatasetsFromBackend();
+        var datasets = await _datasetService.GetDatasets();
         DatasetArray = datasets;
 
         StateHasChanged();
     }
-
-    private async Task<DatasetContract[]?> GetDatasetsFromBackend()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>($"Dataset/ListDatasets");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
-    }
-
+    
     private async Task LoadFile(InputFileChangeEventArgs e, Guid datasetId)
     {
         var file = e.File;
@@ -115,45 +99,11 @@
 
         if (datasetId.Equals(Guid.Empty))
         {
-            await UploadNewDataset(e.File.Name.Split(".")[0], datasetJson);
+            if (await _datasetService.UploadNewDataset(e.File.Name.Split(".")[0], datasetJson)) _ = UpdateData();
         }
         else
         {
-            await UploadRowsToDataset(datasetId, datasetJson);
-        }
-    }
-
-    private async Task UploadNewDataset(string datasetName, string datasetJson)
-    {
-        try
-        {
-            var content = new StringContent(datasetJson, Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync($"Dataset/UploadNewDataset/{datasetName}", content);
-            if (response.IsSuccessStatusCode)
-            {
-                _ = UpdateData();
-            }
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task UploadRowsToDataset(Guid datasetId, string datasetJson)
-    {
-        try
-        {
-            var content = new StringContent(datasetJson, Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync($"Dataset/UploadRowsToDataset/{datasetId}", content);
-            if (response.IsSuccessStatusCode)
-            {
-                _ = UpdateData();
-            }
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
+            if (await _datasetService.UploadRowsToDataset(datasetId, datasetJson)) _ = UpdateData();
         }
     }
 }

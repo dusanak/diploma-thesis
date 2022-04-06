@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
 
-namespace DiplomaThesis.Client;
+namespace DiplomaThesis.Client.Factories;
 
 public class UserWithRolesFactory
     : AccountClaimsPrincipalFactory<RemoteUserAccount>

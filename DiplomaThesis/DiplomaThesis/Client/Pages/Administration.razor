@@ -1,10 +1,10 @@
 @page "/administration"
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Shared.Contracts
+@using DiplomaThesis.Client.Services.Interfaces
 @attribute [Authorize(Roles = "Admin")]
-@inject HttpClient _http
+
+@inject IAdministrationService _administrationService
 
 <PageTitle>Administration</PageTitle>
 
@@ -101,7 +101,7 @@ else
                                @bind:event="oninput"/>
                     </label>
                     <button class="btn btn-outline-dark"
-                            @onclick="CreateUserGroup">
+                            @onclick="CreateUserGroupButton">
                         Create
                     </button>
                 </div>
@@ -127,8 +127,8 @@ else
 
     private async Task UpdateData()
     {
-        var users = await GetUsersFromBackend();
-        var userGroups = await GetUserGroupsFromBackend();
+        var users = await _administrationService.GetUsers();
+        var userGroups = await _administrationService.GetUserGroups();
 
         if (users is not null)
         {
@@ -143,55 +143,11 @@ else
         StateHasChanged();
     }
 
-    private async Task<UserContract[]?> GetUsersFromBackend()
+    private async Task CreateUserGroupButton()
     {
-        try
+        if (await _administrationService.CreateUserGroup(_newUserGroupName))
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<UserContract>>($"Administration/ListUsers");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
-    }
-
-    private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
-    }
-
-    private async Task CreateUserGroup()
-    {
-        if (_newUserGroupName.Length == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            var response = await _http.PostAsJsonAsync(
-                $"Administration/CreateUserGroup",
-                new CreateUserGroupCommand { Name = _newUserGroupName }
-                );
-            if (response.IsSuccessStatusCode)
-            {
-                await UpdateData();
-            }
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
+            await UpdateData();
         }
     }
 }

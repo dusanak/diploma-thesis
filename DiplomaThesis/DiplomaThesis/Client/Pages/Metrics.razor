@@ -1,11 +1,10 @@
 @page "/metrics"
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using DiplomaThesis.Shared
 @using DiplomaThesis.Shared.Contracts
+@using DiplomaThesis.Client.Services.Interfaces
 
 @inject IJSRuntime _js
-@inject HttpClient _http
+@inject IReportService _reportService
 
 @attribute [Authorize]
 
@@ -52,7 +51,7 @@
 
     private async Task UpdateData()
     {
-        var reports = await GetReportsFromBackend();
+        var reports = await _reportService.GetReportsFromBackend();
 
         if (reports is not null)
         {
@@ -60,20 +59,6 @@
         }
             
         StateHasChanged();
-    }
-    
-    private async Task<ReportContract[]?> GetReportsFromBackend()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<IEnumerable<ReportContract>>($"Report/ListReports");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
     }
 
     private void SelectReport(ReportContract report)

@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">DiplomaThesis</a>
+        <a class="navbar-brand" href="">Power BI Metrics app</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -15,14 +15,6 @@
             </NavLink>
         </div>
 
-        @* <AuthorizeView> *@
-        @*     <div class="nav-item px-3"> *@
-        @*         <NavLink class="nav-link" href="dashboards"> *@
-        @*             <span class="oi oi-browser" aria-hidden="true"></span> Dashboards *@
-        @*         </NavLink> *@
-        @*     </div> *@
-        @* </AuthorizeView> *@
-        
         <AuthorizeView>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="metrics">

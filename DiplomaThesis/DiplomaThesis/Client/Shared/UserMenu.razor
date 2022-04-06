@@ -4,8 +4,9 @@
 @using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Shared.Contracts
 @using System.Diagnostics
+@using DiplomaThesis.Client.Services.Interfaces
 
-@inject HttpClient _http
+@inject IAdministrationService _administrationService
 
 <div class="flex-column float-end"
      style="display: @(ShowUserMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
@@ -34,13 +35,13 @@
                         @if (User.Roles.Any(roleInUser => roleInUser.Name.Equals(role.Name)))
                         {
                             <button class="btn btn-outline-dark oi oi-minus"
-                                    @onclick="() => RemoveRole(User.Name, role.Name)">
+                                    @onclick="() => _administrationService.RemoveRole(User.Name, role.Name)">
                             </button>
                         }
                         else
                         {
                             <button class="btn btn-outline-dark oi oi-plus"
-                                    @onclick="() => AddRole(User.Name, role.Name)">
+                                    @onclick="() => _administrationService.AddRole(User.Name, role.Name)">
                             </button>
                         }
                     }
@@ -69,7 +70,7 @@
         <button
             class="btn btn-outline-danger flex-fill"
             style="width: 100%"
-            @onclick="DeleteUser">
+            @onclick="DeleteUserButton">
             Delete user
         </button>
     }
@@ -105,10 +106,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var roles = await GetRolesFromBackend();
+        var roles = await _administrationService.GetRoles();
         Roles = roles;
 
-        var userGroups = await GetUserGroupsFromBackend();
+        var userGroups = await _administrationService.GetUserGroups();
         UserGroups = userGroups;
     }
     
@@ -138,129 +139,49 @@
         
         if (User is not null && !User.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
         {
-            await MoveUserToUserGroup();
-        }
-    }
-
-    private async Task<RoleContract[]?> GetRolesFromBackend()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<IEnumerable<RoleContract>>($"Administration/ListRoles");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
-    }
-
-    private async Task AddRole(string userName, string roleName)
-    {
-        try
-        {
-            var response = await _http.PutAsJsonAsync(
-                $"Administration/AddRole",
-                new AddRoleCommand { UserName = userName, RoleName = roleName }
-                );
-            if (response.IsSuccessStatusCode)
+            if (await _administrationService.MoveUserToUserGroup(User!.Id, Guid.Parse(SelectedUserGroupId)))
             {
                 await OnUserChanged.InvokeAsync();
-                await GetUser();
+                await _administrationService.GetUser(User!.Id);
                 StateHasChanged();
             }
         }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
     }
 
-    private async Task RemoveRole(string userName, string roleName)
+    private async Task AddRoleButton(string userName, string roleName)
     {
-        try
+        if (await _administrationService.AddRole(userName, roleName))
         {
-            await _http.PutAsJsonAsync(
-                $"Administration/RemoveRole",
-                new RemoveRoleCommand { UserName = userName, RoleName = roleName }
-                );
             await OnUserChanged.InvokeAsync();
-            await GetUser();
-            StateHasChanged();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task GetUser()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<UserContract>($"Administration/GetUser/{User!.Id}");
-            User = response;
-            StateHasChanged();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task DeleteUser()
-    {
-        try
-        {
-            var response = await _http.DeleteAsJsonAsync(
-                $"Administration/DeleteUser",
-                new RemoveRoleCommand { UserName = User!.Name }
-                );
-            if (response.IsSuccessStatusCode)
+            var user = await _administrationService.GetUser(User!.Id);
+            if (user is not null)
             {
-                ToggleUserMenu();
-                await OnUserChanged.InvokeAsync();
+                User = user;
+                StateHasChanged();
             }
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
-    }
-
-    private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
         }
     }
     
-    private async Task MoveUserToUserGroup()
+    private async Task RemoveRoleButton(string userName, string roleName)
     {
-        try
+        if (await _administrationService.RemoveRole(userName, roleName))
         {
-            var response = await _http.PutAsJsonAsync(
-                $"Administration/MoveUserToUserGroup",
-                new MoveUserToUserGroupCommand { UserId = User!.Id, UserGroupId = Guid.Parse(SelectedUserGroupId) }
-                );
-            if (response.IsSuccessStatusCode)
+            await OnUserChanged.InvokeAsync();
+            var user = await _administrationService.GetUser(User!.Id);
+            if (user is not null)
             {
-                await OnUserChanged.InvokeAsync();
-                await GetUser();
+                User = user;
                 StateHasChanged();
             }
         }
-        catch (AccessTokenNotAvailableException exception)
+    }
+
+    private async Task DeleteUserButton()
+    {
+        if (await _administrationService.DeleteUser(User!.Name))
         {
-            exception.Redirect();
+            ToggleUserMenu();
+            await OnUserChanged.InvokeAsync();
         }
     }
 }

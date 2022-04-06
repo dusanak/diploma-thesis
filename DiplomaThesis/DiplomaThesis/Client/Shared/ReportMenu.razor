@@ -2,8 +2,11 @@
 @using DiplomaThesis.Shared.Commands
 @using DiplomaThesis.Shared.Contracts
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using DiplomaThesis.Client.Services.Interfaces
 
-@inject HttpClient _http
+@inject IReportService _reportService
+@inject IDatasetService _datasetService
+@inject IAdministrationService _administrationService
 
 <div class="flex-column float-end"
      style="display: @(ShowMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
@@ -58,7 +61,7 @@ else
                       @bind:event="oninput"/>
           </label>
           <button class="btn btn-outline-dark"
-                  @onclick="CloneReport">
+                  @onclick="CloneReportButton">
                Clone
           </button>
      </div>
@@ -131,27 +134,13 @@ else
 
      private async Task UpdateData()
      {
-          var userGroups = await GetUserGroupsFromBackend();
+          var userGroups = await _administrationService.GetUserGroups();
           UserGroups = userGroups;
           
-          var datasets = await GetDatasetsFromBackend();
+          var datasets = await _datasetService.GetDatasetsFromBackend();
           Datasets = datasets;
      }
-     
-     private async Task<DatasetContract[]?> GetDatasetsFromBackend()
-     {
-          try
-          {
-               var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>($"Dataset/ListDatasets");
-               return response?.ToArray();
-          }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
-               return null;
-          }
-     }
-     
+
      private async Task SelectedDatasetChanged(ChangeEventArgs e)
      {
           var selectedDatasetId = e.Value?.ToString();
@@ -165,45 +154,15 @@ else
         
           if (Report is not null && !Report.DatasetId.Equals(Guid.Parse(SelectedDatasetId)))
           {
-               await RebindReportToDataset();
-          }
-     }
-     
-     private async Task RebindReportToDataset()
-     {
-          try
-          {
-               var response = await _http.PutAsJsonAsync(
-                    $"Report/RebindReportToDataset",
-                    new RebindReportCommand { ReportId = Report!.Id, DatasetId = Guid.Parse(SelectedDatasetId) }
-                    );
-               if (response.IsSuccessStatusCode)
+               if (await _reportService.RebindReportToDataset(Report!.Id, Guid.Parse(SelectedDatasetId)))
                {
                     await OnReportChanged.InvokeAsync();
                     ToggleMenu();
                     StateHasChanged();
                }
           }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
-          }
      }
-     
-     private async Task<UserGroupContract[]?> GetUserGroupsFromBackend()
-     {
-          try
-          {
-               var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
-               return response?.ToArray();
-          }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
-               return null;
-          }
-     }
-     
+
      private async Task SelectedUserGroupChanged(ChangeEventArgs e)
      {
           var selectedUserGroupId = e.Value?.ToString();
@@ -217,53 +176,21 @@ else
         
           if (Report is not null && !Report.UserGroupId.Equals(Guid.Parse(SelectedUserGroupId)))
           {
-               await MoveReportToUserGroup();
-          }
-     }
-     
-     private async Task MoveReportToUserGroup()
-     {
-          try
-          {
-               var response = await _http.PutAsJsonAsync(
-                    $"Report/MoveReportToUserGroup",
-                    new MoveReportToUserGroupCommand { ReportId = Report!.Id, UserGroupId = Guid.Parse(SelectedUserGroupId) }
-                    );
-               if (response.IsSuccessStatusCode)
+               if (await _reportService.MoveReportToUserGroup(Report!.Id, Guid.Parse(SelectedUserGroupId)))
                {
                     await OnReportChanged.InvokeAsync();
                     ToggleMenu();
                     StateHasChanged();
                }
           }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
-          }
      }
      
-     private async Task CloneReport()
+     private async Task CloneReportButton()
      {
-          if (_newReportName.Length == 0)
+          if (await _reportService.CloneReport(Report!.Id, _newReportName))
           {
-               return;
-          }
-          
-          try
-          {
-               var response = await _http.PostAsJsonAsync(
-                    $"Report/CloneReport",
-                    new CloneReportCommand { ReportId = Report!.Id, NewName = _newReportName }
-                    );
-               if (response.IsSuccessStatusCode)
-               {
-                    await OnReportChanged.InvokeAsync();
-                    StateHasChanged();
-               }
-          }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
+               await OnReportChanged.InvokeAsync();
+               StateHasChanged();
           }
      }
 }
