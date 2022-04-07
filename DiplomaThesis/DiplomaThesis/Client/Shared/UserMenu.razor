@@ -8,8 +8,8 @@
 
 @inject IAdministrationService _administrationService
 
-<div class="flex-column float-end"
-     style="display: @(ShowUserMenu ? "block" : "none"); margin-left: 10px; padding-left: 10px">
+<div class="flex-column float-end right-side-menus"
+     style="display: @(ShowUserMenu ? "block" : "none");">
 
     @if (User is null || Roles is null || UserGroups is null)
     {

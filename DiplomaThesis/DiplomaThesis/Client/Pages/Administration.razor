@@ -62,8 +62,6 @@ else
                     </tbody>
                 </table>
             </div>
-
-            <UserMenu @ref="_userMenu" OnUserChanged="UpdateData"/>
         }
         else
         {
@@ -108,6 +106,9 @@ else
             </div>
         }
     </div>
+    <div>
+        <UserMenu @ref="_userMenu" OnUserChanged="UpdateData"/>
+    </div>
 }
 
 @code {
@@ -150,5 +151,5 @@ else
             await UpdateData();
         }
     }
-}
 
+}

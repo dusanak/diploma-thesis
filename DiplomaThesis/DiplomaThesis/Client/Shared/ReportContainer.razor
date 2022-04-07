@@ -4,8 +4,8 @@
 @inject IJSRuntime _js
 
 <div>
-    <em>Id: @Report?.Id Name: @Report?.Name</em>
-    <div @ref="@_powerBiElement" style="height:800px; width:800px"></div>
+    <h5><abbr title="@Report?.Id">@Report?.Name</abbr></h5>
+    <div @ref="@_powerBiElement" class="power-bi-metric"></div>
 </div>
 
 @code {

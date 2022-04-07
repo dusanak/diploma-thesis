@@ -12,31 +12,33 @@
 
 <h1>Metrics</h1>
 
-<div class="d-flex">
-    @if (_reports is null || _reports.Length == 0)
-    {
-        <p>
-            <em>Loading...</em>
-        </p>
-    }
-    else
-    {
-        <div class="flex-column">
-            @foreach (var report in _reports)
-            {
+@if (_reports is null || _reports.Length == 0)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <div class="row">
+        @foreach (var report in _reports)
+        {
+            <div class="col m-4 report-element">
                 <AuthorizeView Roles="Architect">
-                    <button class="btn btn-outline-primary"
+                    <button class="btn btn-outline-primary w-100"
                             @onclick="() => SelectReport(report)">
                         Select
                     </button>
                 </AuthorizeView>
-                <ReportContainer Report="@report"/>
-            }
-        </div>
-        
+            <ReportContainer Report="@report"/>
+            </div>
+        }
+    </div>
+    
+    <div>
         <ReportMenu @ref="_reportMenu" OnReportChanged="UpdateData"/>
-    }
-</div>
+    </div>
+}
 
 @code {
     ReportMenu _reportMenu = null!;
