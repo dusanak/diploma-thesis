@@ -245,22 +245,16 @@ public class ReportController : ControllerBase
         
         return Ok();
     }
-    
-    [HttpPost]
-    public ActionResult CreateReport()
+
+    [Authorize(Roles = "Architect")]
+    [HttpDelete("{reportId}")]
+    public async Task<ActionResult> DeleteReport(
+        [FromRoute] Guid reportId)
     {
-        throw new NotImplementedException();
-    }
-    
-    [HttpPut]
-    public ActionResult UpdateReport()
-    {
-        throw new NotImplementedException();
-    }
-    
-    [HttpDelete]
-    public ActionResult DeleteReport()
-    {
-        throw new NotImplementedException();
+        var report = await _service.GetReport(reportId);
+        if (report is null) return NotFound();
+
+        var result = await _service.DeleteReport(reportId);
+        return result ? Ok() : StatusCode(500);
     }
 }

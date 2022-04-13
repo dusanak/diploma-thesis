@@ -179,12 +179,6 @@ public class DatasetController : ControllerBase
         }
         
         var result = await _service.DeleteDataset(datasetId);
-
-        if (!result)
-        {
-            return StatusCode(500);
-        }
-        
-        return Ok(result);
+        return result ? Ok() : StatusCode(500);
     }
 }

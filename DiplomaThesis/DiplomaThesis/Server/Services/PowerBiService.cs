@@ -74,19 +74,30 @@ public class PowerBiService
 
     public string GetEmbedTokenForReport(Guid reportId, Guid datasetId, bool canEdit = false)
     {
-        PowerBIClient pbiClient = GetPowerBiClient();
+        var powerBiClient = GetPowerBiClient();
 
         var tokenRequest = new GenerateTokenRequest(
             canEdit ? TokenAccessLevel.Edit : TokenAccessLevel.View,
             datasetId.ToString()
             );
 
-        var response = pbiClient.Reports.GenerateToken(
+        var response = powerBiClient.Reports.GenerateToken(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             reportId,
             tokenRequest);
 
         return response.Token;
+    }
+
+    public async Task<bool> DeleteReport(Guid reportId)
+    {
+        var powerBiClient = GetPowerBiClient();
+        var response = await powerBiClient.Reports.DeleteReportInGroupWithHttpMessagesAsync(
+            Guid.Parse(_powerBiOptions.Value.GroupId),
+            reportId
+        );
+
+        return response.Response.IsSuccessStatusCode;
     }
     
     public async Task<Dashboard?> GetDashboard(Guid dashboardId)
