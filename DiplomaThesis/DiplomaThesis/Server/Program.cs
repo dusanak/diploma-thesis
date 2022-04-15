@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using DiplomaThesis.Server.Data;
 using DiplomaThesis.Server.Models;
+using DiplomaThesis.Server.Models.Options;
 using DiplomaThesis.Server.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -64,8 +65,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped(typeof(AadService))
                 .AddScoped(typeof(PowerBiService));
 
-builder.Services.Configure<AzureAd>(builder.Configuration.GetSection("AzureAd"))
-                .Configure<PowerBi>(builder.Configuration.GetSection("PowerBI"));
+builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection("AzureAd"))
+                .Configure<PowerBiOptions>(builder.Configuration.GetSection("PowerBI"));
 
 var app = builder.Build();
 

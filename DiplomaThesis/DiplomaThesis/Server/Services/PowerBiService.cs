@@ -1,4 +1,5 @@
 using DiplomaThesis.Server.Models;
+using DiplomaThesis.Server.Models.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
@@ -9,9 +10,9 @@ namespace DiplomaThesis.Server.Services;
 public class PowerBiService
 {
     private readonly AadService _aadService;
-    private readonly IOptions<PowerBi> _powerBiOptions;
+    private readonly IOptions<PowerBiOptions> _powerBiOptions;
 
-    public PowerBiService(AadService aadService, IOptions<PowerBi> powerBiOptions)
+    public PowerBiService(AadService aadService, IOptions<PowerBiOptions> powerBiOptions)
     {
         _aadService = aadService;
         _powerBiOptions = powerBiOptions;

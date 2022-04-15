@@ -1,4 +1,5 @@
 using DiplomaThesis.Server.Models;
+using DiplomaThesis.Server.Models.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
@@ -7,9 +8,9 @@ namespace DiplomaThesis.Server.Services;
 public class AadService
 {
     private readonly IConfiguration _config;
-    private readonly IOptions<AzureAd> _azureAd;
+    private readonly IOptions<AzureAdOptions> _azureAd;
 
-    public AadService(IConfiguration config, IOptions<AzureAd> azureAd)
+    public AadService(IConfiguration config, IOptions<AzureAdOptions> azureAd)
     {
         _config = config;
         _azureAd = azureAd;
