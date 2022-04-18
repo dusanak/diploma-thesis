@@ -42,6 +42,9 @@ else
                         <tr>
                             <td>@user.Id</td>
                             <td>@user.Name</td>
+                            <td>@_userGroups.FirstOrDefault(
+                                    userGroup => userGroup?.Id.Equals(user.UserGroupId) ?? false, null
+                                    )?.Name</td>
                             <td>
                                 <div class="flex-column">
                                     @foreach (var role in user.Roles)
