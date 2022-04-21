@@ -66,6 +66,13 @@ else
           </button>
      </div>
      <hr/>
+     <button
+          class="btn btn-outline-danger flex-fill"
+          style="width: 100%"
+          @onclick="DeleteReportButton">
+          Delete report
+     </button>
+     <hr/>
 }
     <button
         class="btn btn-outline-dark flex-fill"
@@ -191,6 +198,15 @@ else
           {
                await OnReportChanged.InvokeAsync();
                StateHasChanged();
+          }
+     }
+     
+     private async Task DeleteReportButton()
+     {
+          if (await _reportService.DeleteReport(Report?.Id ?? Guid.Empty))
+          {
+               ToggleMenu();
+               await OnReportChanged.InvokeAsync();
           }
      }
 }

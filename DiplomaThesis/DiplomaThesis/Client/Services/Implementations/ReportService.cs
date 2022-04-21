@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using DiplomaThesis.Client.Extensions;
 using DiplomaThesis.Client.Services.Interfaces;
 using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
@@ -85,5 +86,19 @@ public class ReportService : IReportService
           }
 
           return false;
+     }
+
+     public async Task<bool> DeleteReport(Guid reportId)
+     {
+         try
+         {
+             var response = await _http.DeleteAsync($"Report/DeleteReport/{reportId}");
+             return response.IsSuccessStatusCode;
+         }
+         catch (AccessTokenNotAvailableException exception)
+         {
+             exception.Redirect();
+         }
+         return false;
      }
 }

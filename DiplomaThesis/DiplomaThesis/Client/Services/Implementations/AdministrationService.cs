@@ -49,8 +49,8 @@ public class AdministrationService : IAdministrationService
         try
         {
             var response = await _http.DeleteAsJsonAsync(
-                $"Administration/DeleteUser",
-                new RemoveRoleCommand { UserName = userName }
+                "Administration/DeleteUser",
+                new DeleteUserCommand { UserName = userName }
             );
             return response.IsSuccessStatusCode;
         }

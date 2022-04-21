@@ -8,4 +8,5 @@ public interface IReportService
     public Task<bool> RebindReportToDataset(Guid reportId, Guid datasetId);
     public Task<bool> MoveReportToUserGroup(Guid reportId, Guid selectedUserGroupId);
     public Task<bool> CloneReport(Guid reportId, string newReportName);
+    public Task<bool> DeleteReport(Guid reportId);
 }
