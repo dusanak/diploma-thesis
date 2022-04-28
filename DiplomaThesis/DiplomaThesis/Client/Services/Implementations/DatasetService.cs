@@ -19,7 +19,7 @@ public class DatasetService : IDatasetService
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>($"Dataset/ListDatasets");
+            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>("Dataset/ListDatasets");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -28,36 +28,38 @@ public class DatasetService : IDatasetService
             return null;
         }
     }
-    
+
     public async Task<bool> UploadNewDataset(string datasetName, string datasetJson)
     {
         try
         {
             var content = new StringContent(datasetJson, Encoding.UTF8, "application/json");
             var response = await _http.PostAsync($"Dataset/UploadNewDataset/{datasetName}", content);
-            
+
             return response.IsSuccessStatusCode;
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
+
         return false;
     }
-    
+
     public async Task<bool> UploadRowsToDataset(Guid datasetId, string datasetJson)
     {
         try
         {
             var content = new StringContent(datasetJson, Encoding.UTF8, "application/json");
             var response = await _http.PostAsync($"Dataset/UploadRowsToDataset/{datasetId}", content);
-            
+
             return response.IsSuccessStatusCode;
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
+
         return false;
     }
 
@@ -65,7 +67,7 @@ public class DatasetService : IDatasetService
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>($"Dataset/ListDatasets");
+            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>("Dataset/ListDatasets");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)

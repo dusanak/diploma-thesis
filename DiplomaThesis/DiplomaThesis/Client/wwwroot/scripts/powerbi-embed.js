@@ -1,5 +1,5 @@
 export function embedReport(reportContainer, reportId, embedUrl, token) {
-    // Embed reprt using the Power BI JavaScrit API.
+    // Embed report using the Power BI JavaScript API.
     var models = window['powerbi-client'].models
 
     var config = {
@@ -13,7 +13,7 @@ export function embedReport(reportContainer, reportId, embedUrl, token) {
         settings: {
             navContentPaneEnabled: false,
             panes: {
-                filters: { expanded: false, visible: true },
+                filters: {expanded: false, visible: true},
                 pageNavagation: {visible: false}
             }
         }
@@ -21,13 +21,4 @@ export function embedReport(reportContainer, reportId, embedUrl, token) {
 
     // Embed the report and display it within the div container
     powerbi.embed(reportContainer, config)
-
-    // Got this from a youtube video. I don't want to include jquery and it seems to work the same with out it.
-    //var heightBuffer = 32;
-    //var newHeight = $(window).height() - ($("header").height() + heightBuffer)
-    //$("#" + containerId).height(newHeight)
-    //$(window).resize(() => {
-    //    var newHeight = $(window).height() - ($("header").height() + heightBuffer)
-    //    $("#" + containerId).height(newHeight)
-    //})
 }

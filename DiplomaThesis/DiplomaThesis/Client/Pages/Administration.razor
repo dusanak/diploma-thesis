@@ -1,10 +1,10 @@
 @page "/administration"
-@using Microsoft.AspNetCore.Authorization
-@using DiplomaThesis.Shared.Contracts
 @using DiplomaThesis.Client.Services.Interfaces
+@using DiplomaThesis.Shared.Contracts
+@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin")]
 
-@inject IAdministrationService _administrationService
+@inject IAdministrationService AdministrationService
 
 <PageTitle>Administration</PageTitle>
 
@@ -42,9 +42,11 @@ else
                         <tr>
                             <td>@user.Id</td>
                             <td>@user.Name</td>
-                            <td>@_userGroups.FirstOrDefault(
+                            <td>
+                                @_userGroups.FirstOrDefault(
                                     userGroup => userGroup?.Id.Equals(user.UserGroupId) ?? false, null
-                                    )?.Name</td>
+                                    )?.Name
+                            </td>
                             <td>
                                 <div class="flex-column">
                                     @foreach (var role in user.Roles)
@@ -131,8 +133,8 @@ else
 
     private async Task UpdateData()
     {
-        var users = await _administrationService.GetUsers();
-        var userGroups = await _administrationService.GetUserGroups();
+        var users = await AdministrationService.GetUsers();
+        var userGroups = await AdministrationService.GetUserGroups();
 
         if (users is not null)
         {
@@ -149,7 +151,7 @@ else
 
     private async Task CreateUserGroupButton()
     {
-        if (await _administrationService.CreateUserGroup(_newUserGroupName))
+        if (await AdministrationService.CreateUserGroup(_newUserGroupName))
         {
             await UpdateData();
         }

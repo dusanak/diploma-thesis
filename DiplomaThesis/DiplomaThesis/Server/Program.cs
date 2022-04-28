@@ -5,7 +5,6 @@ using DiplomaThesis.Server.Models.Options;
 using DiplomaThesis.Server.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +20,8 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options => {
+    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
+    {
         options.IdentityResources["openid"].UserClaims.Add("name");
         options.ApiResources.Single().UserClaims.Add("name");
         options.IdentityResources["openid"].UserClaims.Add("role");
@@ -63,10 +63,10 @@ builder.Services.AddRazorPages();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped(typeof(AadService))
-                .AddScoped(typeof(PowerBiService));
+    .AddScoped(typeof(PowerBiService));
 
 builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection("AzureAd"))
-                .Configure<PowerBiOptions>(builder.Configuration.GetSection("PowerBI"));
+    .Configure<PowerBiOptions>(builder.Configuration.GetSection("PowerBI"));
 
 var app = builder.Build();
 
@@ -114,7 +114,7 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 
     var manager = services.GetService<UserManager<ApplicationUser>>();
-    
+
     ApplicationDbInitializer.SeedUsers(manager!);
 }
 

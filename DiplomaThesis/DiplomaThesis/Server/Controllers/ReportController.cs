@@ -2,7 +2,6 @@ using System.Security.Claims;
 using DiplomaThesis.Server.Data;
 using DiplomaThesis.Server.Models;
 using DiplomaThesis.Server.Services;
-using DiplomaThesis.Shared;
 using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -19,32 +18,30 @@ public class ReportController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly PowerBiService _service;
-    
+
     private readonly UserManager<ApplicationUser> _userManager;
-    
-    public ReportController(ApplicationDbContext context, PowerBiService service, UserManager<ApplicationUser> userManager)
+
+    public ReportController(ApplicationDbContext context, PowerBiService service,
+        UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _service = service;
         _userManager = userManager;
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpGet("{reportId}")]
     public async Task<ActionResult> GetReport(
         [FromRoute] Guid reportId
-        )
+    )
     {
         var result = await _service.GetReport(reportId);
 
-        if (result is null)
-        {
-            return NotFound();
-        }
+        if (result is null) return NotFound();
 
         var reportsInDb = await _context.Reports.ToListAsync();
         var reportInDb = reportsInDb.FirstOrDefault(
-            reportDb => reportDb?.PowerBiId.Equals(reportId) ?? false, 
+            reportDb => reportDb?.PowerBiId.Equals(reportId) ?? false,
             null);
         if (reportInDb is null)
         {
@@ -82,7 +79,7 @@ public class ReportController : ControllerBase
         var loggedInUsersGroupId = loggedInUser!.UserGroupId ?? Guid.Empty;
 
         var roles = await _userManager.GetRolesAsync(loggedInUser);
-        
+
         var response = new List<ReportContract>();
         foreach (var report in result)
         {
@@ -103,7 +100,6 @@ public class ReportController : ControllerBase
             }
 
             if (roles.Contains("Architect"))
-            {
                 response.Add(new ReportContract
                 {
                     Id = report.Id,
@@ -113,8 +109,7 @@ public class ReportController : ControllerBase
                     UserGroupId = reportInDb.UserGroupId ?? Guid.Empty,
                     DatasetId = Guid.Parse(report.DatasetId)
                 });
-            } else if (reportInDb.UserGroupId?.Equals(loggedInUsersGroupId) ?? true)
-            {
+            else if (reportInDb.UserGroupId?.Equals(loggedInUsersGroupId) ?? true)
                 response.Add(new ReportContract
                 {
                     Id = report.Id,
@@ -124,8 +119,8 @@ public class ReportController : ControllerBase
                     UserGroupId = reportInDb.UserGroupId ?? Guid.Empty,
                     DatasetId = Guid.Parse(report.DatasetId)
                 });
-            }
         }
+
         return Ok(response);
     }
 
@@ -136,25 +131,16 @@ public class ReportController : ControllerBase
     )
     {
         var originalReport = await _service.GetReport(cloneReportCommand.ReportId);
-        if (originalReport is null)
-        {
-            return NotFound();
-        }
-        
-        if (cloneReportCommand.NewName is null || cloneReportCommand.NewName.Length == 0)
-        {
-            return BadRequest();
-        }
+        if (originalReport is null) return NotFound();
+
+        if (cloneReportCommand.NewName is null || cloneReportCommand.NewName.Length == 0) return BadRequest();
 
         var report = await _service.CloneReport(
             cloneReportCommand.ReportId,
             cloneReportCommand.NewName);
 
-        if (report is null)
-        {
-            return StatusCode(500);
-        }
-        
+        if (report is null) return StatusCode(500);
+
         var newReportDb = new ReportDb
         {
             Id = Guid.NewGuid(),
@@ -164,7 +150,7 @@ public class ReportController : ControllerBase
         _context.Reports.Add(newReportDb);
         await _context.SaveChangesAsync();
 
-        var response = new ReportContract 
+        var response = new ReportContract
         {
             Id = report.Id,
             Name = report.Name,
@@ -176,7 +162,7 @@ public class ReportController : ControllerBase
 
         return Ok(response);
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpPut]
     public ActionResult MoveReportToUserGroup(
@@ -185,19 +171,16 @@ public class ReportController : ControllerBase
     {
         var reports = _context.Reports.ToList();
         var report = reports.FirstOrDefault(
-            reportDb => reportDb?.PowerBiId.Equals(moveReportToUserGroupCommand.ReportId)?? false, null);
+            reportDb => reportDb?.PowerBiId.Equals(moveReportToUserGroupCommand.ReportId) ?? false, null);
         if (report is null) return NotFound();
-    
+
         if (moveReportToUserGroupCommand.UserGroupId.Equals(Guid.Empty))
         {
             var userGroups = _context.UserGroups.ToList();
             var userGroup = userGroups.FirstOrDefault(
                 group =>
                 {
-                    if (group is null || group.Reports is null)
-                    {
-                        return false;
-                    }
+                    if (group is null || group.Reports is null) return false;
                     return group.Users.Any(userInGroup => userInGroup.Id.Equals(report.Id.ToString()));
                 }, null);
             report.UserGroup = null;
@@ -207,15 +190,15 @@ public class ReportController : ControllerBase
         {
             var userGroup = _context.UserGroups.Find(moveReportToUserGroupCommand.UserGroupId);
             if (userGroup is null) return NotFound();
-                
+
             report.UserGroup = userGroup;
         }
-    
+
         _context.SaveChanges();
-            
+
         return Ok();
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpPut]
     public async Task<ActionResult> RebindReportToDataset(
@@ -224,25 +207,16 @@ public class ReportController : ControllerBase
     {
         var report = await _service.GetReport(rebindReportCommand.ReportId);
         if (report is null) return NotFound();
-    
-        if (rebindReportCommand.DatasetId.ToString().Equals(report.DatasetId))
-        {
-            return Ok();
-        }
+
+        if (rebindReportCommand.DatasetId.ToString().Equals(report.DatasetId)) return Ok();
 
         var dataset = await _service.GetDataset(rebindReportCommand.DatasetId);
-        if (dataset is null)
-        {
-            return NotFound();
-        }
+        if (dataset is null) return NotFound();
 
         var result = await _service.RebindReport(rebindReportCommand.ReportId, rebindReportCommand.DatasetId);
 
-        if (!result)
-        {
-            return BadRequest();
-        }
-        
+        if (!result) return BadRequest();
+
         return Ok();
     }
 

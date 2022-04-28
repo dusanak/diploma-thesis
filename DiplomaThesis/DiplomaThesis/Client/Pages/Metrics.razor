@@ -1,10 +1,9 @@
 @page "/metrics"
-@using Microsoft.AspNetCore.Authorization
-@using DiplomaThesis.Shared.Contracts
 @using DiplomaThesis.Client.Services.Interfaces
+@using DiplomaThesis.Shared.Contracts
+@using Microsoft.AspNetCore.Authorization
 
-@inject IJSRuntime _js
-@inject IReportService _reportService
+@inject IReportService ReportService
 
 @attribute [Authorize]
 
@@ -30,11 +29,11 @@ else
                         Select
                     </button>
                 </AuthorizeView>
-            <ReportContainer Report="@report"/>
+                <ReportContainer Report="@report"/>
             </div>
         }
     </div>
-    
+
     <div>
         <ReportMenu @ref="_reportMenu" OnReportChanged="UpdateData"/>
     </div>
@@ -42,7 +41,7 @@ else
 
 @code {
     ReportMenu _reportMenu = null!;
-    
+
     ReportContract[]? _reports;
 
     protected override async Task OnInitializedAsync()
@@ -53,13 +52,13 @@ else
 
     private async Task UpdateData()
     {
-        var reports = await _reportService.GetReportsFromBackend();
+        var reports = await ReportService.GetReportsFromBackend();
 
         if (reports is not null)
         {
             _reports = reports;
         }
-            
+
         StateHasChanged();
     }
 
@@ -67,4 +66,5 @@ else
     {
         _reportMenu.Report = report;
     }
+
 }

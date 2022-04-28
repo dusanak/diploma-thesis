@@ -1,11 +1,11 @@
 @page "/data-sources"
-@using Microsoft.AspNetCore.Authorization
-@using DiplomaThesis.Shared.Contracts
 @using DiplomaThesis.Client.Services.Interfaces
+@using DiplomaThesis.Shared.Contracts
+@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin, Architect")]
 
-@inject IDatasetService _datasetService
-@inject IFileParsingService _parser
+@inject IDatasetService DatasetService
+@inject IFileParsingService Parser
 
 <PageTitle>Datasets</PageTitle>
 
@@ -27,7 +27,8 @@
                 <strong>Name:</strong>&nbsp;@dataset.Name<br/>
                 @if (dataset.ColumnNames.Any())
                 {
-                    <strong>Dataset structure:</strong><br/>
+                    <strong>Dataset structure:</strong>
+                    <br/>
                     <table class="table">
                         <thead>
                         <tr>
@@ -48,9 +49,10 @@
                 }
                 else
                 {
-                    <strong>Dataset not uploaded through this app.</strong><br/>
+                    <strong>Dataset not uploaded through this app.</strong>
+                    <br/>
                 }
-                <strong>Upload more rows:</strong><br/> 
+                <strong>Upload more rows:</strong><br/>
                 <InputFile OnChange="@(args => LoadFile(args, dataset.Id))"/>
             </div>
             <hr/>
@@ -73,12 +75,12 @@
 
     private async Task UpdateData()
     {
-        var datasets = await _datasetService.GetDatasets();
+        var datasets = await DatasetService.GetDatasets();
         DatasetArray = datasets;
 
         StateHasChanged();
     }
-    
+
     private async Task LoadFile(InputFileChangeEventArgs e, Guid datasetId)
     {
         var file = e.File;
@@ -87,7 +89,7 @@
 
         try
         {
-            datasetJson = _parser.ParseToJson(datasetFileContent, e.File.Name.Split(".").Last());
+            datasetJson = Parser.ParseToJson(datasetFileContent, e.File.Name.Split(".").Last());
             Console.WriteLine(datasetJson);
         }
         catch
@@ -95,15 +97,16 @@
             Console.WriteLine("Exception");
             return;
         }
-        
+
 
         if (datasetId.Equals(Guid.Empty))
         {
-            if (await _datasetService.UploadNewDataset(e.File.Name.Split(".")[0], datasetJson)) _ = UpdateData();
+            if (await DatasetService.UploadNewDataset(e.File.Name.Split(".")[0], datasetJson)) _ = UpdateData();
         }
         else
         {
-            if (await _datasetService.UploadRowsToDataset(datasetId, datasetJson)) _ = UpdateData();
+            if (await DatasetService.UploadRowsToDataset(datasetId, datasetJson)) _ = UpdateData();
         }
     }
+
 }

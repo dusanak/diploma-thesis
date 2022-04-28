@@ -5,7 +5,7 @@ namespace DiplomaThesis.Client.Services.Interfaces;
 public interface IAdministrationService
 {
     public Task<UserContract?> GetUser(Guid userId);
-    
+
     public Task<UserContract[]?> GetUsers();
 
     public Task<bool> DeleteUser(string userName);
@@ -13,7 +13,7 @@ public interface IAdministrationService
     public Task<bool> MoveUserToUserGroup(Guid userId, Guid userGroupId);
 
     public Task<UserGroupContract[]?> GetUserGroups();
-    
+
     public Task<bool> CreateUserGroup(string newUserGroupName);
 
     public Task<RoleContract[]?> GetRoles();

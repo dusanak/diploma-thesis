@@ -7,20 +7,17 @@ public static class ApplicationDbInitializer
 {
     public static void SeedUsers(UserManager<ApplicationUser> userManager)
     {
-        if (userManager.FindByEmailAsync("admin@admin.cz").Result==null)
+        if (userManager.FindByEmailAsync("admin@admin.cz").Result is null)
         {
-            ApplicationUser user = new ApplicationUser
+            var user = new ApplicationUser
             {
                 UserName = "admin@admin.cz",
                 Email = "admin@admin.cz"
             };
 
-            IdentityResult result = userManager.CreateAsync(user, "admin1234").Result;
+            var result = userManager.CreateAsync(user, "admin1234").Result;
 
-            if (result.Succeeded)
-            {
-                userManager.AddToRolesAsync(user, new[] {"Admin", "Architect"}).Wait();
-            }
+            if (result.Succeeded) userManager.AddToRolesAsync(user, new[] { "Admin", "Architect" }).Wait();
         }
     }
 }

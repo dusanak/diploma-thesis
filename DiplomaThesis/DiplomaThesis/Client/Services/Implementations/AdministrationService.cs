@@ -15,7 +15,7 @@ public class AdministrationService : IAdministrationService
     {
         _http = http;
     }
-    
+
     public async Task<UserContract?> GetUser(Guid userId)
     {
         try
@@ -27,14 +27,15 @@ public class AdministrationService : IAdministrationService
         {
             exception.Redirect();
         }
+
         return null;
     }
-    
+
     public async Task<UserContract[]?> GetUsers()
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<UserContract>>($"Administration/ListUsers");
+            var response = await _http.GetFromJsonAsync<IEnumerable<UserContract>>("Administration/ListUsers");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -43,7 +44,7 @@ public class AdministrationService : IAdministrationService
             return null;
         }
     }
-    
+
     public async Task<bool> DeleteUser(string userName)
     {
         try
@@ -58,16 +59,17 @@ public class AdministrationService : IAdministrationService
         {
             exception.Redirect();
         }
+
         return false;
     }
-    
-    public async Task<bool> MoveUserToUserGroup(Guid userId, Guid UserGroupId)
+
+    public async Task<bool> MoveUserToUserGroup(Guid userId, Guid userGroupId)
     {
         try
         {
             var response = await _http.PutAsJsonAsync(
-                $"Administration/MoveUserToUserGroup",
-                new MoveUserToUserGroupCommand { UserId = userId, UserGroupId = UserGroupId }
+                "Administration/MoveUserToUserGroup",
+                new MoveUserToUserGroupCommand { UserId = userId, UserGroupId = userGroupId }
             );
             return response.IsSuccessStatusCode;
         }
@@ -75,6 +77,7 @@ public class AdministrationService : IAdministrationService
         {
             exception.Redirect();
         }
+
         return false;
     }
 
@@ -82,7 +85,8 @@ public class AdministrationService : IAdministrationService
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>($"Administration/ListUserGroups");
+            var response =
+                await _http.GetFromJsonAsync<IEnumerable<UserGroupContract>>("Administration/ListUserGroups");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -91,18 +95,15 @@ public class AdministrationService : IAdministrationService
             return null;
         }
     }
-    
+
     public async Task<bool> CreateUserGroup(string newUserGroupName)
     {
-        if (newUserGroupName.Length == 0)
-        {
-            return false;
-        }
+        if (newUserGroupName.Length == 0) return false;
 
         try
         {
             var response = await _http.PostAsJsonAsync(
-                $"Administration/CreateUserGroup",
+                "Administration/CreateUserGroup",
                 new CreateUserGroupCommand { Name = newUserGroupName }
             );
             return response.IsSuccessStatusCode;
@@ -114,12 +115,12 @@ public class AdministrationService : IAdministrationService
 
         return false;
     }
-    
+
     public async Task<RoleContract[]?> GetRoles()
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<RoleContract>>($"Administration/ListRoles");
+            var response = await _http.GetFromJsonAsync<IEnumerable<RoleContract>>("Administration/ListRoles");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -128,13 +129,13 @@ public class AdministrationService : IAdministrationService
             return null;
         }
     }
-    
+
     public async Task<bool> AddRole(string userName, string roleName)
     {
         try
         {
             var response = await _http.PutAsJsonAsync(
-                $"Administration/AddRole",
+                "Administration/AddRole",
                 new AddRoleCommand { UserName = userName, RoleName = roleName }
             );
             return response.IsSuccessStatusCode;
@@ -143,6 +144,7 @@ public class AdministrationService : IAdministrationService
         {
             exception.Redirect();
         }
+
         return false;
     }
 
@@ -151,7 +153,7 @@ public class AdministrationService : IAdministrationService
         try
         {
             var response = await _http.PutAsJsonAsync(
-                $"Administration/RemoveRole",
+                "Administration/RemoveRole",
                 new RemoveRoleCommand { UserName = userName, RoleName = roleName }
             );
             return response.IsSuccessStatusCode;
@@ -160,6 +162,7 @@ public class AdministrationService : IAdministrationService
         {
             exception.Redirect();
         }
+
         return false;
     }
 }

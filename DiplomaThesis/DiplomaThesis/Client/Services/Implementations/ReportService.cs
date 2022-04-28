@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using DiplomaThesis.Client.Extensions;
 using DiplomaThesis.Client.Services.Interfaces;
 using DiplomaThesis.Shared.Commands;
 using DiplomaThesis.Shared.Contracts;
@@ -20,7 +19,7 @@ public class ReportService : IReportService
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<ReportContract>>($"Report/ListReports");
+            var response = await _http.GetFromJsonAsync<IEnumerable<ReportContract>>("Report/ListReports");
             return response?.ToArray();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -29,13 +28,13 @@ public class ReportService : IReportService
             return null;
         }
     }
-    
+
     public async Task<bool> RebindReportToDataset(Guid reportId, Guid datasetId)
     {
         try
         {
             var response = await _http.PutAsJsonAsync(
-                $"Report/RebindReportToDataset",
+                "Report/RebindReportToDataset",
                 new RebindReportCommand { ReportId = reportId, DatasetId = datasetId }
             );
             return response.IsSuccessStatusCode;
@@ -47,58 +46,57 @@ public class ReportService : IReportService
 
         return false;
     }
-    
-     public async Task<bool> MoveReportToUserGroup(Guid reportId, Guid selectedUserGroupId)
-     {
-          try
-          {
-               var response = await _http.PutAsJsonAsync(
-                    $"Report/MoveReportToUserGroup",
-                    new MoveReportToUserGroupCommand { ReportId = reportId, UserGroupId = selectedUserGroupId }
-                    );
-               return response.IsSuccessStatusCode;
-          }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
-          }
-          return false;
-     }
 
-     public async Task<bool> CloneReport(Guid reportId, string newReportName)
-     {
-          if (newReportName.Length == 0)
-          {
-               return false;
-          }
-          
-          try
-          {
-               var response = await _http.PostAsJsonAsync(
-                    $"Report/CloneReport",
-                    new CloneReportCommand { ReportId = reportId, NewName = newReportName }
-                    );
-               return response.IsSuccessStatusCode;
-          }
-          catch (AccessTokenNotAvailableException exception)
-          {
-               exception.Redirect();
-          }
+    public async Task<bool> MoveReportToUserGroup(Guid reportId, Guid selectedUserGroupId)
+    {
+        try
+        {
+            var response = await _http.PutAsJsonAsync(
+                "Report/MoveReportToUserGroup",
+                new MoveReportToUserGroupCommand { ReportId = reportId, UserGroupId = selectedUserGroupId }
+            );
+            return response.IsSuccessStatusCode;
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
 
-          return false;
-     }
+        return false;
+    }
 
-     public async Task<bool> DeleteReport(Guid reportId)
-     {
-         try
-         {
-             var response = await _http.DeleteAsync($"Report/DeleteReport/{reportId}");
-             return response.IsSuccessStatusCode;
-         }
-         catch (AccessTokenNotAvailableException exception)
-         {
-             exception.Redirect();
-         }
-         return false;
-     }
+    public async Task<bool> CloneReport(Guid reportId, string newReportName)
+    {
+        if (newReportName.Length == 0) return false;
+
+        try
+        {
+            var response = await _http.PostAsJsonAsync(
+                "Report/CloneReport",
+                new CloneReportCommand { ReportId = reportId, NewName = newReportName }
+            );
+            return response.IsSuccessStatusCode;
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+
+        return false;
+    }
+
+    public async Task<bool> DeleteReport(Guid reportId)
+    {
+        try
+        {
+            var response = await _http.DeleteAsync($"Report/DeleteReport/{reportId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+
+        return false;
+    }
 }

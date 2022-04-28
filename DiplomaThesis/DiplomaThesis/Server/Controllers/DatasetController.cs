@@ -1,4 +1,3 @@
-using System.Text.Json;
 using DiplomaThesis.Server.Data;
 using DiplomaThesis.Server.Models;
 using DiplomaThesis.Server.Services;
@@ -33,11 +32,8 @@ public class DatasetController : ControllerBase
     )
     {
         var datasetInPowerBi = await _service.GetDataset(datasetId);
-        if (datasetInPowerBi is null)
-        {
-            return NotFound();
-        }
-        
+        if (datasetInPowerBi is null) return NotFound();
+
         var datasetsInDb = await _context.Datasets.ToListAsync();
         var datasetInDb = datasetsInDb.Find(datasetDb => datasetDb.PowerBiId.Equals(Guid.Parse(datasetInPowerBi.Id)));
 
@@ -62,7 +58,7 @@ public class DatasetController : ControllerBase
         foreach (var dataset in datasetsInPowerBi)
         {
             var datasetInDb = datasetsInDb.Find(datasetDb => datasetDb.PowerBiId.Equals(Guid.Parse(dataset.Id)));
-            
+
             result.Add(new DatasetContract
             {
                 Id = Guid.Parse(dataset.Id),
@@ -74,31 +70,25 @@ public class DatasetController : ControllerBase
 
         return Ok(result);
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpPost]
     public async Task<ActionResult> CreateDataset(
         [FromBody] CreateDatasetCommand createDatasetCommand
     )
     {
-        if (createDatasetCommand.Name.Length == 0 || !createDatasetCommand.Columns.Any())
-        {
-            return BadRequest();
-        }
-        
-        var result = await _service.CreateDataset(
-            createDatasetCommand.Name, 
-            createDatasetCommand.Columns.Select(name => new Column(name, "string"))
-            );
+        if (createDatasetCommand.Name.Length == 0 || !createDatasetCommand.Columns.Any()) return BadRequest();
 
-        if (result is null)
-        {
-            return StatusCode(500);
-        }
-        
+        var result = await _service.CreateDataset(
+            createDatasetCommand.Name,
+            createDatasetCommand.Columns.Select(name => new Column(name, "string"))
+        );
+
+        if (result is null) return StatusCode(500);
+
         return Ok(result);
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpPost("{datasetName}")]
     public async Task<ActionResult> UploadNewDataset(
@@ -106,33 +96,19 @@ public class DatasetController : ControllerBase
         [FromBody] List<object> rows
     )
     {
-        if (datasetName.Length == 0 || rows.Count == 0)
-        {
-            return BadRequest();
-        }
+        if (datasetName.Length == 0 || rows.Count == 0) return BadRequest();
 
         var columns = new List<Column>();
         foreach (var element in ((JObject)rows[0]).Properties())
-        {
             if (DateTime.TryParse(element.Value.ToString(), out _))
-            {
                 columns.Add(new Column(element.Name, "datetime"));
-            } 
             else if (long.TryParse(element.Value.ToString(), out _))
-            {
                 columns.Add(new Column(element.Name, "int64"));
-            }
             else
-            {
                 columns.Add(new Column(element.Name, "string"));
-            }
-        }
-        
+
         var dataset = await _service.CreateDataset(datasetName, columns);
-        if (dataset is null)
-        {
-            return StatusCode(500);
-        }
+        if (dataset is null) return StatusCode(500);
 
         var datasetInDb = new DatasetDb
         {
@@ -144,11 +120,11 @@ public class DatasetController : ControllerBase
 
         _context.Datasets.Add(datasetInDb);
         await _context.SaveChangesAsync();
-        
+
         var result = await _service.PushRowsToDataset(Guid.Parse(dataset.Id), rows);
         return result ? Ok() : StatusCode(500);
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpPost("{datasetId}")]
     public async Task<ActionResult> UploadRowsToDataset(
@@ -157,15 +133,12 @@ public class DatasetController : ControllerBase
     )
     {
         var dataset = await _service.GetDataset(datasetId);
-        if (dataset is null)
-        {
-            return NotFound();
-        }
+        if (dataset is null) return NotFound();
 
         var result = await _service.PushRowsToDataset(datasetId, rows);
         return result ? Ok() : StatusCode(500);
     }
-    
+
     [Authorize(Roles = "Architect")]
     [HttpDelete]
     public async Task<ActionResult> DeleteDataset(
@@ -173,11 +146,8 @@ public class DatasetController : ControllerBase
     )
     {
         var dataset = await _service.GetDataset(datasetId);
-        if (dataset is null)
-        {
-            return Ok();
-        }
-        
+        if (dataset is null) return Ok();
+
         var result = await _service.DeleteDataset(datasetId);
         return result ? Ok() : StatusCode(500);
     }

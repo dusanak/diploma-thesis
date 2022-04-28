@@ -15,27 +15,29 @@ public class FileParsingService : IFileParsingService
             _ => throw new NotImplementedException()
         };
     }
-    
+
     private static string ParseCsvToJson(string datasetFile)
     {
         datasetFile = datasetFile.ReplaceLineEndings();
         var rows = datasetFile.Split("\n");
         var columnNames = rows[0].Split(",");
-        
+
         var sb = new StringBuilder("[\n");
-        
+
         for (var i = 1; i < rows.Length; i++)
         {
             sb.AppendLine("{");
-            
+
             for (var j = 0; j < columnNames.Length; j++)
             {
                 var row = rows[i].Split(",");
                 sb.AppendLine("\"" + columnNames[j] + "\": \"" + row[j] + "\",");
             }
+
             sb.Remove(sb.Length - 1, 1);
             sb.AppendLine("\n},");
         }
+
         sb.Remove(sb.Length - 1, 1);
         sb.AppendLine("\n]");
 

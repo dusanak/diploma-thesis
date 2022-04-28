@@ -1,4 +1,3 @@
-using DiplomaThesis.Server.Models;
 using DiplomaThesis.Server.Models.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.PowerBI.Api;
@@ -50,7 +49,7 @@ public class PowerBiService
         var powerBiClient = GetPowerBiClient();
 
         var cloneReportRequest = new CloneReportRequest(newReportName);
-        
+
         var response = await powerBiClient.Reports.CloneReportInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             reportId,
@@ -58,13 +57,13 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
-    
+
     public async Task<bool> RebindReport(Guid reportId, Guid datasetId)
     {
         var powerBiClient = GetPowerBiClient();
-        
+
         var rebindReportRequest = new RebindReportRequest(datasetId.ToString());
-        
+
         var response = await powerBiClient.Reports.RebindReportInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             reportId,
@@ -80,7 +79,7 @@ public class PowerBiService
         var tokenRequest = new GenerateTokenRequest(
             canEdit ? TokenAccessLevel.Edit : TokenAccessLevel.View,
             datasetId.ToString()
-            );
+        );
 
         var response = powerBiClient.Reports.GenerateToken(
             Guid.Parse(_powerBiOptions.Value.GroupId),
@@ -100,7 +99,7 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode;
     }
-    
+
     public async Task<Dashboard?> GetDashboard(Guid dashboardId)
     {
         var powerBiClient = GetPowerBiClient();
@@ -121,7 +120,7 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dashboard>();
     }
-    
+
     public async Task<Dashboard?> CreateDashboard(string name)
     {
         var powerBiClient = GetPowerBiClient();
@@ -145,7 +144,7 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
-    
+
     public async Task<IEnumerable<Dataset>> GetDatasets()
     {
         var powerBiClient = GetPowerBiClient();
@@ -155,27 +154,27 @@ public class PowerBiService
 
         return response.Response.IsSuccessStatusCode ? response.Body.Value : new List<Dataset>();
     }
-    
+
     public async Task<Dataset?> CreateDataset(string datasetName, IEnumerable<Column> columns)
     {
         var powerBiClient = GetPowerBiClient();
-        
+
         var table = new Table("Data", columns.ToList());
 
         var createDatasetRequest = new CreateDatasetRequest(
             datasetName,
             new List<Table> { table },
             defaultMode: DatasetMode.Push);
-        
+
         var response = await powerBiClient.Datasets.PostDatasetInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             createDatasetRequest
         );
-        
+
         return response.Response.IsSuccessStatusCode ? response.Body : null;
     }
-    
-    public async Task<bool> PushRowsToDataset(Guid datasetId, List<object> rows, string tableName="Data")
+
+    public async Task<bool> PushRowsToDataset(Guid datasetId, List<object> rows, string tableName = "Data")
     {
         var powerBiClient = GetPowerBiClient();
 
@@ -196,7 +195,7 @@ public class PowerBiService
         var response = await powerBiClient.Datasets.DeleteDatasetInGroupWithHttpMessagesAsync(
             Guid.Parse(_powerBiOptions.Value.GroupId),
             datasetId.ToString()
-            );
+        );
 
         return response.Response.IsSuccessStatusCode;
     }
