@@ -62,18 +62,4 @@ public class DatasetService : IDatasetService
 
         return false;
     }
-
-    public async Task<DatasetContract[]?> GetDatasetsFromBackend()
-    {
-        try
-        {
-            var response = await _http.GetFromJsonAsync<IEnumerable<DatasetContract>>("Dataset/ListDatasets");
-            return response?.ToArray();
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-            return null;
-        }
-    }
 }

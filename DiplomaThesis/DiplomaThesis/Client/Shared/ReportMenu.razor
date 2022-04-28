@@ -144,7 +144,7 @@
         var userGroups = await AdministrationService.GetUserGroups();
         UserGroups = userGroups;
 
-        var datasets = await DatasetService.GetDatasetsFromBackend();
+        var datasets = await DatasetService.GetDatasets();
         Datasets = datasets;
     }
 
