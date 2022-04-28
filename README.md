@@ -8,7 +8,7 @@ This repository contains the codebase for my diploma thesis.
 
 ## Run instructions
 1) Run the docker-compose file in the Infrastructure directory to start the database server.
-2) In your preferred IDE add a user secret "ClientSecret": "<USER_SECRET_IN_AZURE_ACTIVE_DIRECTORY>" identifying your app registered to a Power BI workspace.
+2) In your preferred IDE add a user secret "ClientSecret": "<USER_SECRET_IN_AZURE_ACTIVE_DIRECTORY>" to the project DiplomaThesis.Server identifying your app registered to a Power BI workspace.
 3) Run the server application. If it is not started automatically, run the client application as well. Application should be accessible at https://localhost:7116/.
 
 ## More information
