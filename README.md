@@ -1,5 +1,4 @@
 # diploma-thesis
-My diploma thesis
 This repository contains the codebase for my diploma thesis.
 
 ## Prerequisites
