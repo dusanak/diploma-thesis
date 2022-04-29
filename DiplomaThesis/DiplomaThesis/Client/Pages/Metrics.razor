@@ -35,7 +35,9 @@ else
     </div>
 
     <div>
-        <ReportMenu @ref="_reportMenu" OnReportChanged="UpdateData"/>
+        <AuthorizeView Roles="Architect">
+            <ReportMenu @ref="_reportMenu" OnReportChanged="UpdateData"/>
+        </AuthorizeView>
     </div>
 }
 
